@@ -2,18 +2,184 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
+    android:id="@+id/main"
     android:layout_height="match_parent"
+    android:background="@color/dark_purple_background"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_bar"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <RelativeLayout
+                android:id="@+id/top_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VenueGo"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_centerVertical="true"/>
+
+                <ImageView
+                    android:id="@+id/icon_bell"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_bell"
+                    app:tint="@android:color/white"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Notifications"/>
+
+                <ImageView
+                    android:id="@+id/icon_profile"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_profile"
+                    app:tint="@android:color/white"
+                    android:layout_toStartOf="@id/icon_bell"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="16dp"
+                    android:contentDescription="Profile"/>
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/greeting_user"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hello, User!"
+                android:textColor="@android:color/white"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/top_bar"/>
+
+            <TextView
+                android:id="@+id/greeting_prompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Let's find an the perfect spot for your\nCorporate Conference!"
+                android:textColor="@color/light_gray_text"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/greeting_user"/>
+
+            <RelativeLayout
+                android:id="@+id/search_bar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:layout_constraintTop_toBottomOf="@id/greeting_prompt">
+
+                <Button
+                    android:id="@+id/btn_start_new_plan"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Start a New Plan"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:backgroundTint="@color/vibrant_purple"
+                    android:drawablePadding="0dp"
+                    android:paddingStart="24dp"
+                    android:gravity="start|center_vertical"
+                    android:textAllCaps="false"/>
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="@android:color/white"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="24dp"
+                    android:contentDescription="Search Icon"/>
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/trending_venues_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trending Venues Suggestion"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="32dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/search_bar_layout"/>
+
+            <HorizontalScrollView
+                android:id="@+id/trending_scroll_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:scrollbars="none"
+                app:layout_constraintTop_toBottomOf="@id/trending_venues_title">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <include layout="@layout/venue_card_item" />
+                    <include layout="@layout/venue_card_item" />
+                    <include layout="@layout/venue_card_item" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <TextView
+                android:id="@+id/interests_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Based on your interests..."
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="32dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/trending_scroll_view"/>
+
+            <LinearLayout
+                android:id="@+id/interests_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="3"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"  app:layout_constraintTop_toBottomOf="@id/interests_title"
+                app:layout_constraintBottom_toBottomOf="parent"> <include layout="@layout/interest_icon_item" />
+                <include layout="@layout/interest_icon_item" />
+                <include layout="@layout/interest_icon_item" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_bar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:background="@color/bottom_nav_dark"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
