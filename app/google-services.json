@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "879515915882",
+    "project_id": "venuego-28d44",
+    "storage_bucket": "venuego-28d44.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:879515915882:android:56b3c6cec6e2a21dea1c13",
+        "android_client_info": {
+          "package_name": "com.arsalankhan.venuego"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhiTGdd41vQdDBMtf_BoXm_75bh6mBDYU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
