@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/dark_purple_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="OSM Data Ingestion"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Statistics Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Database Statistics"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvTotalVenues"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Total Venues: 0"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvCityStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="City Distribution: Loading..."
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Action Buttons -->
+        <Button
+            android:id="@+id/btnFetchOSMData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fetch OSM Data"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/vibrant_purple"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnViewStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Detailed Statistics"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/purple_200"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnClearData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Clear All Data"
+            android:textColor="@android:color/holo_purple"
+            android:backgroundTint="@color/white"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Instructions -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Instructions:"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1. Click 'Fetch OSM Data' to import venues from OpenStreetMap\n\n2. View statistics above to see imported data\n\n3. Use 'Clear All Data' to remove all venues"
+            android:textColor="@color/light_gray_text"
+            android:textSize="14sp"
+            android:lineSpacingExtra="4dp" />
+
+    </LinearLayout>
+
+</ScrollView>
