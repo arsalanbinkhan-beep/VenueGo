@@ -35,9 +35,10 @@ public class MainActivity extends AppCompatActivity {
         setupUI();
         setupClickListeners();
         loadUserData();
-        setupTrendingVenues();
-        setupInterests();
         setupDataIngestion();
+
+        // Removed: setupTrendingVenues() - because trendingRecyclerView doesn't exist in XML
+        // Removed: setupInterests() - because interest buttons don't exist in XML
     }
 
     private void setupUI() {
@@ -49,10 +50,10 @@ public class MainActivity extends AppCompatActivity {
             binding.greetingUser.setText("Hello, User!");
         }
 
-        // Hide RecyclerView since we're not using adapter
-        if (binding.trendingRecyclerView != null) {
-            binding.trendingRecyclerView.setVisibility(View.GONE);
-        }
+        // Removed: trendingRecyclerView doesn't exist in XML
+        // if (binding.trendingRecyclerView != null) {
+        //     binding.trendingRecyclerView.setVisibility(View.GONE);
+        // }
     }
 
     private void setupClickListeners() {
@@ -107,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Removed setupTrendingVenues() method - Add it back only if you add trendingRecyclerView to XML
+    /*
     private void setupTrendingVenues() {
         // Just show a simple message instead of using adapter
         binding.trendingVenuesTitle.setText("Trending Venues");
@@ -142,12 +145,15 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
     }
+    */
 
+    // Modified setupInterests() - Only sets text, no button click listeners
     private void setupInterests() {
+        // Only set the title text - buttons don't exist in XML
         binding.interestsTitle.setText("Based on your interests...");
 
-        // Setup interest buttons - use actual button IDs from your layout
-        // These are example IDs, update them based on your actual layout
+        // Removed button click listeners - buttons don't exist in XML
+        /*
         if (binding.interestWedding != null) {
             binding.interestWedding.setOnClickListener(v -> navigateToCategory("wedding"));
         }
@@ -160,8 +166,10 @@ public class MainActivity extends AppCompatActivity {
         if (binding.interestHangout != null) {
             binding.interestHangout.setOnClickListener(v -> navigateToCategory("hangout"));
         }
+        */
     }
 
+    // Keep this method for future use if you add interest buttons
     private void navigateToCategory(String category) {
         // Navigate to SearchFilterActivity with category
         Intent intent = new Intent(this, SearchFilterActivity.class);
@@ -188,9 +196,9 @@ public class MainActivity extends AppCompatActivity {
         if (!authService.isUserLoggedIn()) {
             redirectToLogin();
         } else {
-            // Refresh user data and venues
+            // Refresh user data
             loadUserData();
-            setupTrendingVenues();
+            // Removed: setupTrendingVenues() - because trendingRecyclerView doesn't exist
         }
     }
 
