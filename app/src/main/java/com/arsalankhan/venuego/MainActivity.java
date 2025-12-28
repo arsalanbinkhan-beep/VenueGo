@@ -2,21 +2,20 @@ package com.arsalankhan.venuego;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.arsalankhan.venuego.databinding.ActivityMainBinding;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private AuthService authService;
+    private VenueService venueService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,69 +24,179 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         authService = new AuthService();
+        venueService = new VenueService();
+
+        // Check authentication first
+        if (!authService.isUserLoggedIn()) {
+            redirectToLogin();
+            return;
+        }
 
         setupUI();
         setupClickListeners();
-        checkUserAuthentication();
+        loadUserData();
+        setupTrendingVenues();
+        setupInterests();
+        setupDataIngestion();
     }
 
     private void setupUI() {
-        // Setup toolbar icons
-        binding.iconProfile.setOnClickListener(v -> {
-            if (authService.isUserLoggedIn()) {
-                // Go to profile
-            } else {
-                startActivity(new Intent(this, LoginActivity.class));
-            }
-        });
+        // Setup greeting based on user data
+        FirebaseUser currentUser = authService.getCurrentUser();
+        if (currentUser != null && currentUser.getDisplayName() != null) {
+            binding.greetingUser.setText("Hello, " + currentUser.getDisplayName() + "!");
+        } else {
+            binding.greetingUser.setText("Hello, User!");
+        }
 
-        binding.iconBell.setOnClickListener(v -> {
-            // Handle notifications
-        });
+        // Hide RecyclerView since we're not using adapter
+        if (binding.trendingRecyclerView != null) {
+            binding.trendingRecyclerView.setVisibility(View.GONE);
+        }
     }
 
     private void setupClickListeners() {
+        // Profile icon click
+        binding.iconProfile.setOnClickListener(v -> {
+            if (authService.isUserLoggedIn()) {
+                // Go to profile - create ProfileActivity later
+                Toast.makeText(this, "Profile feature coming soon", Toast.LENGTH_SHORT).show();
+            } else {
+                redirectToLogin();
+            }
+        });
+
+        // Notification icon click
+        binding.iconBell.setOnClickListener(v -> {
+            // Handle notifications
+            Toast.makeText(this, "Notifications feature coming soon", Toast.LENGTH_SHORT).show();
+        });
+
+        // Start New Plan button
         binding.btnStartNewPlan.setOnClickListener(v -> {
             startActivity(new Intent(this, SearchFilterActivity.class));
         });
-
-        // Setup trending venues
-        setupTrendingVenues();
     }
 
-    private void checkUserAuthentication() {
-        if (!authService.isUserLoggedIn()) {
-            binding.greetingUser.setText("Hello, Guest!");
-        } else {
-            // Fetch user data and update greeting
-            String userName = authService.getCurrentUser().getDisplayName();
-            if (userName != null && !userName.isEmpty()) {
-                binding.greetingUser.setText("Hello, " + userName + "!");
-            }
+    private void redirectToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private void loadUserData() {
+        if (authService.isUserLoggedIn()) {
+            authService.getCurrentUserData(new AuthService.AuthCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    if (user != null && user.getName() != null) {
+                        binding.greetingUser.setText("Hello, " + user.getName() + "!");
+                    }
+                }
+
+                @Override
+                public void onFailure(String errorMessage) {
+                    // Use Firebase user display name as fallback
+                    FirebaseUser firebaseUser = authService.getCurrentUser();
+                    if (firebaseUser != null && firebaseUser.getDisplayName() != null) {
+                        binding.greetingUser.setText("Hello, " + firebaseUser.getDisplayName() + "!");
+                    }
+                }
+            });
         }
     }
 
     private void setupTrendingVenues() {
-        // This will be populated from Firestore
-        VenueService venueService = new VenueService();
+        // Just show a simple message instead of using adapter
+        binding.trendingVenuesTitle.setText("Trending Venues");
+
         venueService.getTrendingVenues(new VenueService.VenueListCallback() {
             @Override
             public void onSuccess(List<Venue> venues) {
-                // Populate trending venues
+                if (venues.isEmpty()) {
+                    binding.trendingVenuesTitle.setText("No trending venues found");
+                } else {
+                    binding.trendingVenuesTitle.setText("Found " + venues.size() + " trending venues");
+                    // You can process venues here without adapter
+                    processVenuesWithoutAdapter(venues);
+                }
             }
 
             @Override
             public void onFailure(String error) {
-                Toast.makeText(MainActivity.this, "Error loading venues", Toast.LENGTH_SHORT).show();
+                binding.trendingVenuesTitle.setText("Error loading venues");
+                Toast.makeText(MainActivity.this, "Error loading venues: " + error, Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+    private void processVenuesWithoutAdapter(List<Venue> venues) {
+        // If you want to display venues without RecyclerView/Adapter,
+        // you can update TextViews or show in a different way
+
+        // For example, show the first venue name
+        if (!venues.isEmpty()) {
+            Venue firstVenue = venues.get(0);
+            String message = "Top venue: " + firstVenue.getName();
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setupInterests() {
+        binding.interestsTitle.setText("Based on your interests...");
+
+        // Setup interest buttons - use actual button IDs from your layout
+        // These are example IDs, update them based on your actual layout
+        if (binding.interestWedding != null) {
+            binding.interestWedding.setOnClickListener(v -> navigateToCategory("wedding"));
+        }
+        if (binding.interestCorporate != null) {
+            binding.interestCorporate.setOnClickListener(v -> navigateToCategory("corporate"));
+        }
+        if (binding.interestBirthday != null) {
+            binding.interestBirthday.setOnClickListener(v -> navigateToCategory("birthday"));
+        }
+        if (binding.interestHangout != null) {
+            binding.interestHangout.setOnClickListener(v -> navigateToCategory("hangout"));
+        }
+    }
+
+    private void navigateToCategory(String category) {
+        // Navigate to SearchFilterActivity with category
+        Intent intent = new Intent(this, SearchFilterActivity.class);
+        intent.putExtra("category", category);
+        startActivity(intent);
+        Toast.makeText(this, "Showing " + category + " venues", Toast.LENGTH_SHORT).show();
+    }
+
     private void setupDataIngestion() {
-        // You can add a menu item or hidden button to access data ingestion
-        // For testing, you can add this:
+        // Hidden feature: long press on profile icon for admin features
         binding.iconProfile.setOnLongClickListener(v -> {
-            startActivity(new Intent(this, DataIngestionActivity.class));
-            return true;
+            if (authService.isUserLoggedIn()) {
+                startActivity(new Intent(this, DataIngestionActivity.class));
+                return true;
+            }
+            return false;
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Check authentication when returning to app
+        if (!authService.isUserLoggedIn()) {
+            redirectToLogin();
+        } else {
+            // Refresh user data and venues
+            loadUserData();
+            setupTrendingVenues();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Minimize app instead of going back
+        moveTaskToBack(true);
     }
 }

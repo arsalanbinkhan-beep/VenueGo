@@ -1,12 +1,18 @@
 package com.arsalankhan.venuego;
 
+import android.util.Log;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 public class AuthService {
-    private FirebaseAuth firebaseAuth;
-    private FirebaseFirestore firestore;
+    private final FirebaseAuth firebaseAuth;
+    private final FirebaseFirestore firestore;
 
     public AuthService() {
         firebaseAuth = FirebaseAuth.getInstance();
@@ -23,14 +29,22 @@ public class AuthService {
         void onFailure(String errorMessage);
     }
 
-    // Add this method for password reset
+    public boolean isUserLoggedIn() {
+        return firebaseAuth.getCurrentUser() != null;
+    }
+
+    public FirebaseUser getCurrentUser() {
+        return firebaseAuth.getCurrentUser();
+    }
+
     public void resetPassword(String email, SimpleCallback callback) {
         firebaseAuth.sendPasswordResetEmail(email)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         callback.onSuccess();
                     } else {
-                        callback.onFailure(task.getException().getMessage());
+                        callback.onFailure(task.getException() != null ?
+                                task.getException().getMessage() : "Unknown error");
                     }
                 });
     }
@@ -43,9 +57,12 @@ public class AuthService {
                         if (firebaseUser != null) {
                             User user = new User(firebaseUser.getUid(), name, email);
                             saveUserToFirestore(user, callback);
+                        } else {
+                            callback.onFailure("User creation failed");
                         }
                     } else {
-                        callback.onFailure(task.getException().getMessage());
+                        callback.onFailure(task.getException() != null ?
+                                task.getException().getMessage() : "Unknown error");
                     }
                 });
     }
@@ -57,11 +74,23 @@ public class AuthService {
                         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                         if (firebaseUser != null) {
                             getUserFromFirestore(firebaseUser.getUid(), callback);
+                        } else {
+                            callback.onFailure("Login failed - no user returned");
                         }
                     } else {
-                        callback.onFailure(task.getException().getMessage());
+                        callback.onFailure(task.getException() != null ?
+                                task.getException().getMessage() : "Unknown error");
                     }
                 });
+    }
+
+    public void getCurrentUserData(AuthCallback callback) {
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        if (firebaseUser != null) {
+            getUserFromFirestore(firebaseUser.getUid(), callback);
+        } else {
+            callback.onFailure("No user logged in");
+        }
     }
 
     private void saveUserToFirestore(User user, AuthCallback callback) {
@@ -79,23 +108,39 @@ public class AuthService {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         User user = documentSnapshot.toObject(User.class);
-                        callback.onSuccess(user);
+                        if (user != null) {
+                            callback.onSuccess(user);
+                        } else {
+                            callback.onFailure("Failed to parse user data");
+                        }
                     } else {
-                        callback.onFailure("User data not found");
+                        // Create a basic user if not in Firestore yet
+                        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            User user = new User(firebaseUser.getUid(),
+                                    firebaseUser.getDisplayName() != null ?
+                                            firebaseUser.getDisplayName() : "User",
+                                    firebaseUser.getEmail() != null ?
+                                            firebaseUser.getEmail() : "");
+                            saveUserToFirestore(user, callback);
+                        } else {
+                            callback.onFailure("User data not found");
+                        }
                     }
                 })
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 
-    public boolean isUserLoggedIn() {
-        return firebaseAuth.getCurrentUser() != null;
-    }
-
-    public void signOut() {
+    public void logout() {
         firebaseAuth.signOut();
     }
 
-    public FirebaseUser getCurrentUser() {
-        return firebaseAuth.getCurrentUser();
+    public void logoutWithCallback(SimpleCallback callback) {
+        try {
+            firebaseAuth.signOut();
+            callback.onSuccess();
+        } catch (Exception e) {
+            callback.onFailure(e.getMessage());
+        }
     }
 }

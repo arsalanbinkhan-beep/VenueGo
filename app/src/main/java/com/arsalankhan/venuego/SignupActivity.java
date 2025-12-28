@@ -1,6 +1,5 @@
 package com.arsalankhan.venuego;
 
-import android.os.Bundle;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
@@ -10,7 +9,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.arsalankhan.venuego.databinding.ActivitySignupBinding;
-
 
 public class SignupActivity extends AppCompatActivity {
     private ActivitySignupBinding binding;
@@ -24,7 +22,18 @@ public class SignupActivity extends AppCompatActivity {
 
         authService = new AuthService();
 
+        // If user is already logged in, redirect to MainActivity
+        if (authService.isUserLoggedIn()) {
+            redirectToMain();
+            return;
+        }
+
         setupClickListeners();
+    }
+
+    private void redirectToMain() {
+        startActivity(new Intent(SignupActivity.this, MainActivity.class));
+        finish();
     }
 
     private void setupClickListeners() {
@@ -35,12 +44,13 @@ public class SignupActivity extends AppCompatActivity {
             finish();
         });
 
-        // Password visibility toggle
+        // Password visibility toggle with proper click handling
         binding.etSignupPassword.setOnTouchListener((v, event) -> {
             final int DRAWABLE_RIGHT = 2;
-            if(event.getAction() == MotionEvent.ACTION_UP) {
-                if(event.getRawX() >= (binding.etSignupPassword.getRight() - binding.etSignupPassword.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                if (event.getRawX() >= (binding.etSignupPassword.getRight() - binding.etSignupPassword.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                     togglePasswordVisibility();
+                    v.performClick(); // Call performClick to handle accessibility
                     return true;
                 }
             }
@@ -70,8 +80,7 @@ public class SignupActivity extends AppCompatActivity {
             public void onSuccess(User user) {
                 binding.btnSignup.setEnabled(true);
                 Toast.makeText(SignupActivity.this, "Account created successfully!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(SignupActivity.this, MainActivity.class));
-                finish();
+                redirectToMain();
             }
 
             @Override
@@ -91,5 +100,14 @@ public class SignupActivity extends AppCompatActivity {
             binding.etSignupPassword.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_lock, 0, R.drawable.ic_eye, 0);
         }
         binding.etSignupPassword.setSelection(binding.etSignupPassword.getText().length());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Check if user logged in from another device or session
+        if (authService.isUserLoggedIn()) {
+            redirectToMain();
+        }
     }
 }
