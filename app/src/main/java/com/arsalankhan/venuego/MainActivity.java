@@ -2,15 +2,19 @@ package com.arsalankhan.venuego;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.arsalankhan.venuego.databinding.ActivityMainBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseUser;
-
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
@@ -33,12 +37,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setupUI();
-        setupClickListeners();
+        setupBottomNavigation();
         loadUserData();
         setupDataIngestion();
-
-        // Removed: setupTrendingVenues() - because trendingRecyclerView doesn't exist in XML
-        // Removed: setupInterests() - because interest buttons don't exist in XML
     }
 
     private void setupUI() {
@@ -50,33 +51,67 @@ public class MainActivity extends AppCompatActivity {
             binding.greetingUser.setText("Hello, User!");
         }
 
-        // Removed: trendingRecyclerView doesn't exist in XML
-        // if (binding.trendingRecyclerView != null) {
-        //     binding.trendingRecyclerView.setVisibility(View.GONE);
-        // }
-    }
-
-    private void setupClickListeners() {
-        // Profile icon click
+        // Setup click listeners for profile and bell icons
         binding.iconProfile.setOnClickListener(v -> {
             if (authService.isUserLoggedIn()) {
-                // Go to profile - create ProfileActivity later
-                Toast.makeText(this, "Profile feature coming soon", Toast.LENGTH_SHORT).show();
+                // Navigate to profile
+                Intent intent = new Intent(this, ProfileActivity.class);
+                startActivity(intent);
             } else {
                 redirectToLogin();
             }
         });
 
-        // Notification icon click
         binding.iconBell.setOnClickListener(v -> {
-            // Handle notifications
-            Toast.makeText(this, "Notifications feature coming soon", Toast.LENGTH_SHORT).show();
+            // Navigate to notifications
+            Intent intent = new Intent(this, NotificationsActivity.class);
+            startActivity(intent);
         });
 
         // Start New Plan button
         binding.btnStartNewPlan.setOnClickListener(v -> {
             startActivity(new Intent(this, SearchFilterActivity.class));
         });
+    }
+
+    private void setupBottomNavigation() {
+        binding.bottomNavigationBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+
+                if (itemId == R.id.nav_home) {
+                    // Already on home, just refresh
+                    loadUserData();
+                    return true;
+                } else if (itemId == R.id.nav_search) {
+                    navigateToSearch();
+                    return true;
+                } else if (itemId == R.id.nav_favorites) {
+                    navigateToFavorites();
+                    return true;
+                } else if (itemId == R.id.nav_booking) {
+                    navigateToBookings();
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void navigateToSearch() {
+        Intent intent = new Intent(this, SearchFilterActivity.class);
+        startActivity(intent);
+    }
+
+    private void navigateToFavorites() {
+        Intent intent = new Intent(this, FavoritesActivity.class);
+        startActivity(intent);
+    }
+
+    private void navigateToBookings() {
+        Intent intent = new Intent(this, BookingsActivity.class);
+        startActivity(intent);
     }
 
     private void redirectToLogin() {
@@ -108,76 +143,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Removed setupTrendingVenues() method - Add it back only if you add trendingRecyclerView to XML
-    /*
-    private void setupTrendingVenues() {
-        // Just show a simple message instead of using adapter
-        binding.trendingVenuesTitle.setText("Trending Venues");
-
-        venueService.getTrendingVenues(new VenueService.VenueListCallback() {
-            @Override
-            public void onSuccess(List<Venue> venues) {
-                if (venues.isEmpty()) {
-                    binding.trendingVenuesTitle.setText("No trending venues found");
-                } else {
-                    binding.trendingVenuesTitle.setText("Found " + venues.size() + " trending venues");
-                    // You can process venues here without adapter
-                    processVenuesWithoutAdapter(venues);
-                }
-            }
-
-            @Override
-            public void onFailure(String error) {
-                binding.trendingVenuesTitle.setText("Error loading venues");
-                Toast.makeText(MainActivity.this, "Error loading venues: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void processVenuesWithoutAdapter(List<Venue> venues) {
-        // If you want to display venues without RecyclerView/Adapter,
-        // you can update TextViews or show in a different way
-
-        // For example, show the first venue name
-        if (!venues.isEmpty()) {
-            Venue firstVenue = venues.get(0);
-            String message = "Top venue: " + firstVenue.getName();
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        }
-    }
-    */
-
-    // Modified setupInterests() - Only sets text, no button click listeners
-    private void setupInterests() {
-        // Only set the title text - buttons don't exist in XML
-        binding.interestsTitle.setText("Based on your interests...");
-
-        // Removed button click listeners - buttons don't exist in XML
-        /*
-        if (binding.interestWedding != null) {
-            binding.interestWedding.setOnClickListener(v -> navigateToCategory("wedding"));
-        }
-        if (binding.interestCorporate != null) {
-            binding.interestCorporate.setOnClickListener(v -> navigateToCategory("corporate"));
-        }
-        if (binding.interestBirthday != null) {
-            binding.interestBirthday.setOnClickListener(v -> navigateToCategory("birthday"));
-        }
-        if (binding.interestHangout != null) {
-            binding.interestHangout.setOnClickListener(v -> navigateToCategory("hangout"));
-        }
-        */
-    }
-
-    // Keep this method for future use if you add interest buttons
-    private void navigateToCategory(String category) {
-        // Navigate to SearchFilterActivity with category
-        Intent intent = new Intent(this, SearchFilterActivity.class);
-        intent.putExtra("category", category);
-        startActivity(intent);
-        Toast.makeText(this, "Showing " + category + " venues", Toast.LENGTH_SHORT).show();
-    }
-
     private void setupDataIngestion() {
         // Hidden feature: long press on profile icon for admin features
         binding.iconProfile.setOnLongClickListener(v -> {
@@ -198,13 +163,18 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // Refresh user data
             loadUserData();
-            // Removed: setupTrendingVenues() - because trendingRecyclerView doesn't exist
         }
     }
 
     @Override
     public void onBackPressed() {
-        // Minimize app instead of going back
-        moveTaskToBack(true);
+        // If not on home screen, navigate to home
+        super.onBackPressed();
+        if (binding.bottomNavigationBar.getSelectedItemId() != R.id.nav_home) {
+            binding.bottomNavigationBar.setSelectedItemId(R.id.nav_home);
+        } else {
+            // Minimize app if already on home
+            moveTaskToBack(true);
+        }
     }
 }

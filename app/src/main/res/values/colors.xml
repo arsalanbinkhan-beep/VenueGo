@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="dark_purple_background">#1A1333</color>
-    <color name="bottom_nav_dark">#231C43</color>
-    <color name="card_background_dark">#231C43</color>
-    <color name="light_gray_text">#B0B0CC</color>
-    <color name="vibrant_purple">#7F64F5</color>
-    <color name="yellow_star">#FFC72C</color>
-    <color name="match_percentage_orange">#F88C00</color>
-    <color name="nav_item_active">#7F64F5</color>
-    <color name="nav_item_inactive">#B0B0CC</color>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="chip_background_inactive">#3A394B</color>
-    <color name="chip_text_color_inactive">#CCCCCC</color>
-    <color name="chip_stroke_color_inactive">#4C4B5E</color>
-    <color name="switch_thumb_color">#FFFFFF</color>
-    <color name="switch_track_color">#673AB7</color>
-    <color name="switch_track_color_inactive">#4C4B5E</color>
 
-    <color name="interest_icon_border">#403566</color>
+    <!-- Existing colors -->
+    <color name="dark_purple_background">#0F0B2B</color>
+    <color name="vibrant_purple">#7C3AED</color>
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="light_gray_text">#B0B0B0</color>
+    <color name="yellow_star">#FFC107</color>
+    <color name="card_background_dark">#1E1B3D</color>
+    <color name="bottom_nav_dark">#15122E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- New colors -->
+    <color name="chip_background_inactive">#2A2745</color>
+    <color name="chip_text_color_inactive">#B0B0B0</color>
+    <color name="chip_stroke_color_inactive">#3D3A5D</color>
+    <color name="switch_thumb_color">#7C3AED</color>
+    <color name="switch_track_color">#2A2745</color>
+    <color name="red_error">#F44336</color>
+    <color name="green_success">#4CAF50</color>
+    <color name="blue_info">#2196F3</color>
+
+    <!-- Bottom navigation colors -->
+    <color name="nav_item_active">#BB86FC</color>
+    <color name="nav_item_inactive">#9E9E9E</color>
+    <color name="match_percentage_orange">#FF9800</color>
+    <color name="interest_icon_border">#DDDDDD</color>
+
 </resources>

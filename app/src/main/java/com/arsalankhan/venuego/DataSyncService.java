@@ -2,8 +2,10 @@ package com.arsalankhan.venuego;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.IBinder;
 import android.util.Log;
 
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -13,15 +15,33 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DataSyncService {
+public class DataSyncService extends Service {
     private FirebaseFirestore firestore;
     private OSMDataService osmDataService;
     private Context context;
 
     public DataSyncService(Context context) {
-        this.context = context;
+        // Required empty constructor
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        context = this;
         firestore = FirebaseFirestore.getInstance();
         osmDataService = new OSMDataService();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("DataSyncService", "Service started");
+        performIncrementalSync();
+        return START_STICKY;
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
     public void scheduleDailySync() {
@@ -137,5 +157,11 @@ public class DataSyncService {
             alarmManager.cancel(pendingIntent);
             Log.d("DataSyncService", "Daily sync cancelled");
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("DataSyncService", "Service destroyed");
     }
 }
