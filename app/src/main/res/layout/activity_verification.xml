@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/dark_purple_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center">
+
+        <!-- Back Button -->
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:src="@drawable/ic_back"
+            app:tint="@android:color/white"
+            android:contentDescription="Back"
+            android:layout_gravity="start"/>
+
+        <!-- Logo/Icon -->
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_verification"
+            app:tint="@color/vibrant_purple"
+            android:contentDescription="Verification"
+            android:layout_gravity="center_horizontal"/>
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verify Phone Number"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center_horizontal"/>
+
+        <!-- Subtitle -->
+        <TextView
+            android:id="@+id/tv_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter the 6-digit code sent to your phone"
+            android:textColor="@color/light_gray_text"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"/>
+
+        <!-- OTP Input Container -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="48dp"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center">
+
+            <!-- OTP Digit 1 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_otp_1"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:boxStrokeColor="@color/vibrant_purple"
+                app:boxStrokeWidth="2dp"
+                app:boxCornerRadiusTopStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@android:color/white">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_otp_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:maxLength="1"
+                    android:hint="0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:inputType="number"
+                    android:gravity="center"
+                    android:background="@null"
+                    android:cursorVisible="false"
+                    android:selectAllOnFocus="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- OTP Digit 2 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_otp_2"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:boxStrokeColor="@color/vibrant_purple"
+                app:boxStrokeWidth="2dp"
+                app:boxCornerRadiusTopStart="8dp"
+app:boxCornerRadiusTopEnd="8dp"
+app:boxCornerRadiusBottomStart="8dp"
+app:boxCornerRadiusBottomEnd="8dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@android:color/white">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_otp_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:maxLength="1"
+                    android:hint="0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:inputType="number"
+                    android:gravity="center"
+                    android:background="@null"
+                    android:cursorVisible="false"
+                    android:selectAllOnFocus="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- OTP Digit 3 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_otp_3"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:boxStrokeColor="@color/vibrant_purple"
+                app:boxStrokeWidth="2dp"
+                app:boxCornerRadiusTopStart="8dp"
+app:boxCornerRadiusTopEnd="8dp"
+app:boxCornerRadiusBottomStart="8dp"
+app:boxCornerRadiusBottomEnd="8dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@android:color/white">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_otp_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:maxLength="1"
+                    android:hint="0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:inputType="number"
+                    android:gravity="center"
+                    android:background="@null"
+                    android:cursorVisible="false"
+                    android:selectAllOnFocus="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- OTP Digit 4 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_otp_4"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:boxStrokeColor="@color/vibrant_purple"
+                app:boxStrokeWidth="2dp"
+                app:boxCornerRadiusTopStart="8dp"
+app:boxCornerRadiusTopEnd="8dp"
+app:boxCornerRadiusBottomStart="8dp"
+app:boxCornerRadiusBottomEnd="8dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@android:color/white">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_otp_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:maxLength="1"
+                    android:hint="0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:inputType="number"
+                    android:gravity="center"
+                    android:background="@null"
+                    android:cursorVisible="false"
+                    android:selectAllOnFocus="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- OTP Digit 5 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_otp_5"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:boxStrokeColor="@color/vibrant_purple"
+                app:boxStrokeWidth="2dp"
+                app:boxCornerRadiusTopStart="8dp"
+app:boxCornerRadiusTopEnd="8dp"
+app:boxCornerRadiusBottomStart="8dp"
+app:boxCornerRadiusBottomEnd="8dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@android:color/white">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_otp_5"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:maxLength="1"
+                    android:hint="0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:inputType="number"
+                    android:gravity="center"
+                    android:background="@null"
+                    android:cursorVisible="false"
+                    android:selectAllOnFocus="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- OTP Digit 6 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_otp_6"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                app:boxStrokeColor="@color/vibrant_purple"
+                app:boxStrokeWidth="2dp"
+                app:boxCornerRadiusTopStart="8dp"
+app:boxCornerRadiusTopEnd="8dp"
+app:boxCornerRadiusBottomStart="8dp"
+app:boxCornerRadiusBottomEnd="8dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@android:color/white">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_otp_6"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:maxLength="1"
+                    android:hint="0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:inputType="number"
+                    android:gravity="center"
+                    android:background="@null"
+                    android:cursorVisible="false"
+                    android:selectAllOnFocus="true"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <!-- Countdown Timer -->
+        <TextView
+            android:id="@+id/tv_countdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Resend in 60 seconds"
+            android:textColor="@color/light_gray_text"
+            android:textSize="14sp"
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center_horizontal"/>
+
+        <!-- Resend Text -->
+        <TextView
+            android:id="@+id/tv_resend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Resend Code"
+            android:textColor="@color/vibrant_purple"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center_horizontal"
+            android:enabled="false"/>
+
+        <!-- Verify Button -->
+        <Button
+            android:id="@+id/btn_verify"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="48dp"
+            android:text="Verify And Continue"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/vibrant_purple"
+            android:enabled="false"
+            app:cornerRadius="12dp"/>
+
+        <!-- Alternative Methods -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Having trouble receiving code?"
+            android:textColor="@color/light_gray_text"
+            android:textSize="14sp"
+            android:layout_marginTop="32dp"
+            android:layout_gravity="center_horizontal"/>
+
+        <TextView
+            android:id="@+id/tv_call_me"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Call me instead"
+            android:textColor="@color/vibrant_purple"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center_horizontal"/>
+
+        <!-- Help Text -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Make sure your phone can receive SMS or calls"
+            android:textColor="@color/light_gray_text"
+            android:textSize="12sp"
+            android:layout_marginTop="32dp"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"/>
+
+    </LinearLayout>
+
+</ScrollView>

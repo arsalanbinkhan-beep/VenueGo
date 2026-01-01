@@ -1,25 +1,34 @@
 package com.arsalankhan.venuego;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.arsalankhan.venuego.databinding.ActivityMainBinding;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private AuthService authService;
     private VenueService venueService;
+    private FusedLocationProviderClient fusedLocationClient;
+    private VenueAdapter venueAdapter;
+    private List<Venue> nearbyVenues = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,17 +38,22 @@ public class MainActivity extends AppCompatActivity {
 
         authService = new AuthService();
         venueService = new VenueService();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Check authentication first
+        // Check authentication and email verification
         if (!authService.isUserLoggedIn()) {
             redirectToLogin();
             return;
         }
 
+        if (!authService.isEmailVerified()) {
+            showEmailVerificationDialog();
+        }
+
         setupUI();
-        setupBottomNavigation();
-        loadUserData();
-        setupDataIngestion();
+        setupVenuesRecyclerView();
+        getUserLocationAndLoadVenues();
+        loadTrendingVenues();
     }
 
     private void setupUI() {
@@ -51,67 +65,123 @@ public class MainActivity extends AppCompatActivity {
             binding.greetingUser.setText("Hello, User!");
         }
 
-        // Setup click listeners for profile and bell icons
+        // Setup click listeners
         binding.iconProfile.setOnClickListener(v -> {
-            if (authService.isUserLoggedIn()) {
-                // Navigate to profile
-                Intent intent = new Intent(this, ProfileActivity.class);
-                startActivity(intent);
-            } else {
-                redirectToLogin();
-            }
+            startActivity(new Intent(this, ProfileActivity.class));
         });
 
         binding.iconBell.setOnClickListener(v -> {
-            // Navigate to notifications
-            Intent intent = new Intent(this, NotificationsActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, NotificationsActivity.class));
         });
 
         // Start New Plan button
         binding.btnStartNewPlan.setOnClickListener(v -> {
-            startActivity(new Intent(this, SearchFilterActivity.class));
+            startActivity(new Intent(this, CreateEventActivity.class));
+        });
+
+        // View All Nearby button
+        binding.btnViewAllNearby.setOnClickListener(v -> {
+            Intent intent = new Intent(this, VenueListActivity.class);
+            intent.putExtra("type", "nearby");
+            startActivity(intent);
+        });
+
+        // View All Trending button
+        binding.btnViewAllTrending.setOnClickListener(v -> {
+            Intent intent = new Intent(this, VenueListActivity.class);
+            intent.putExtra("type", "trending");
+            startActivity(intent);
         });
     }
 
-    private void setupBottomNavigation() {
-        binding.bottomNavigationBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
+    private void setupVenuesRecyclerView() {
+        venueAdapter = new VenueAdapter(nearbyVenues, this);
+        binding.recyclerViewNearby.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerViewNearby.setAdapter(venueAdapter);
 
-                if (itemId == R.id.nav_home) {
-                    // Already on home, just refresh
-                    loadUserData();
-                    return true;
-                } else if (itemId == R.id.nav_search) {
-                    navigateToSearch();
-                    return true;
-                } else if (itemId == R.id.nav_favorites) {
-                    navigateToFavorites();
-                    return true;
-                } else if (itemId == R.id.nav_booking) {
-                    navigateToBookings();
-                    return true;
+        // Setup trending venues recycler view
+        VenueAdapter trendingAdapter = new VenueAdapter(new ArrayList<>(), this);
+        binding.recyclerViewTrending.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerViewTrending.setAdapter(trendingAdapter);
+    }
+
+    private void getUserLocationAndLoadVenues() {
+        try {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            // Get nearby venues based on location
+                            Map<String, Object> filters = new HashMap<>();
+                            filters.put("latitude", location.getLatitude());
+                            filters.put("longitude", location.getLongitude());
+                            filters.put("radius", 10.0); // 10km radius
+
+                            venueService.searchVenuesNearby(location.getLatitude(), location.getLongitude(), 10.0,
+                                    new VenueService.VenueListCallback() {
+                                        @Override
+                                        public void onSuccess(List<Venue> venues) {
+                                            nearbyVenues.clear();
+                                            nearbyVenues.addAll(venues);
+                                            venueAdapter.notifyDataSetChanged();
+
+                                            if (venues.isEmpty()) {
+                                                binding.tvNoNearby.setVisibility(View.VISIBLE);
+                                            } else {
+                                                binding.tvNoNearby.setVisibility(View.GONE);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(String error) {
+                                            Log.e("MainActivity", "Error loading nearby venues: " + error);
+                                            binding.tvNoNearby.setVisibility(View.VISIBLE);
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(this, "Unable to get location", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } catch (SecurityException e) {
+            Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loadTrendingVenues() {
+        venueService.getTrendingVenues(new VenueService.VenueListCallback() {
+            @Override
+            public void onSuccess(List<Venue> venues) {
+                VenueAdapter trendingAdapter = (VenueAdapter) binding.recyclerViewTrending.getAdapter();
+                if (trendingAdapter != null) {
+                    trendingAdapter.updateData(venues);
                 }
-                return false;
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Log.e("MainActivity", "Error loading trending venues: " + error);
             }
         });
     }
 
-    private void navigateToSearch() {
-        Intent intent = new Intent(this, SearchFilterActivity.class);
-        startActivity(intent);
-    }
+    private void showEmailVerificationDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Email Not Verified")
+                .setMessage("Please verify your email address to access all features.")
+                .setPositiveButton("Resend Verification", (dialog, which) -> {
+                    authService.sendEmailVerification(new AuthService.SimpleCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(MainActivity.this, "Verification email sent!", Toast.LENGTH_SHORT).show();
+                        }
 
-    private void navigateToFavorites() {
-        Intent intent = new Intent(this, FavoritesActivity.class);
-        startActivity(intent);
-    }
-
-    private void navigateToBookings() {
-        Intent intent = new Intent(this, BookingsActivity.class);
-        startActivity(intent);
+                        @Override
+                        public void onFailure(String errorMessage) {
+                            Toast.makeText(MainActivity.this, "Failed to send email: " + errorMessage, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("Later", null)
+                .show();
     }
 
     private void redirectToLogin() {
@@ -121,60 +191,11 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    private void loadUserData() {
-        if (authService.isUserLoggedIn()) {
-            authService.getCurrentUserData(new AuthService.AuthCallback() {
-                @Override
-                public void onSuccess(User user) {
-                    if (user != null && user.getName() != null) {
-                        binding.greetingUser.setText("Hello, " + user.getName() + "!");
-                    }
-                }
-
-                @Override
-                public void onFailure(String errorMessage) {
-                    // Use Firebase user display name as fallback
-                    FirebaseUser firebaseUser = authService.getCurrentUser();
-                    if (firebaseUser != null && firebaseUser.getDisplayName() != null) {
-                        binding.greetingUser.setText("Hello, " + firebaseUser.getDisplayName() + "!");
-                    }
-                }
-            });
-        }
-    }
-
-    private void setupDataIngestion() {
-        // Hidden feature: long press on profile icon for admin features
-        binding.iconProfile.setOnLongClickListener(v -> {
-            if (authService.isUserLoggedIn()) {
-                startActivity(new Intent(this, DataIngestionActivity.class));
-                return true;
-            }
-            return false;
-        });
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
-        // Check authentication when returning to app
         if (!authService.isUserLoggedIn()) {
             redirectToLogin();
-        } else {
-            // Refresh user data
-            loadUserData();
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        // If not on home screen, navigate to home
-        super.onBackPressed();
-        if (binding.bottomNavigationBar.getSelectedItemId() != R.id.nav_home) {
-            binding.bottomNavigationBar.setSelectedItemId(R.id.nav_home);
-        } else {
-            // Minimize app if already on home
-            moveTaskToBack(true);
         }
     }
 }
