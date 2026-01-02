@@ -11,10 +11,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthOptions;
+import com.google.firebase.auth.PhoneAuthProvider;
+
+import java.util.concurrent.TimeUnit;
 
 public class VerificationActivity extends AppCompatActivity {
     private TextView tvCountdown, tvResend, tvCallMe, tvSubtitle;
@@ -22,32 +30,41 @@ public class VerificationActivity extends AppCompatActivity {
     private TextInputLayout[] otpLayouts = new TextInputLayout[6];
     private Button btnVerify;
     private ImageView btnBack;
-    private AuthService authService;
+
+    private FirebaseAuth firebaseAuth;
     private String verificationId;
+    private PhoneAuthProvider.ForceResendingToken resendToken;
     private CountDownTimer countDownTimer;
     private boolean canResend = false;
     private String phoneNumber;
+    private boolean isPhoneVerification = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verification);
 
-        authService = new AuthService();
+        firebaseAuth = FirebaseAuth.getInstance();
         verificationId = getIntent().getStringExtra("verificationId");
         phoneNumber = getIntent().getStringExtra("phoneNumber");
+        isPhoneVerification = getIntent().getBooleanExtra("isPhoneVerification", false);
 
         initializeViews();
         setupOTPInputs();
         startCountdown();
         updatePhoneNumberDisplay();
+
+        // If no verificationId but we have phoneNumber, send OTP automatically
+        if (verificationId == null && phoneNumber != null && !phoneNumber.isEmpty()) {
+            sendOTP();
+        }
     }
 
     private void initializeViews() {
         tvCountdown = findViewById(R.id.tv_countdown);
         tvResend = findViewById(R.id.tv_resend);
         tvCallMe = findViewById(R.id.tv_call_me);
-        tvSubtitle = findViewById(R.id.tv_subtitle); // Changed from subtitle to tv_subtitle
+        tvSubtitle = findViewById(R.id.tv_subtitle);
 
         etOTP1 = findViewById(R.id.et_otp_1);
         etOTP2 = findViewById(R.id.et_otp_2);
@@ -74,12 +91,11 @@ public class VerificationActivity extends AppCompatActivity {
 
     private void updatePhoneNumberDisplay() {
         if (phoneNumber != null && !phoneNumber.isEmpty()) {
-            // Mask the phone number for privacy (show only last 4 digits)
             String maskedPhone;
             if (phoneNumber.length() > 4) {
                 maskedPhone = "******" + phoneNumber.substring(phoneNumber.length() - 4);
             } else {
-                maskedPhone = phoneNumber; // Show full if too short
+                maskedPhone = phoneNumber;
             }
             tvSubtitle.setText("Enter the 6-digit code sent to\n" + maskedPhone);
         }
@@ -96,7 +112,6 @@ public class VerificationActivity extends AppCompatActivity {
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    // Clear error when user types
                     if (otpLayouts[index] != null) {
                         otpLayouts[index].setError(null);
                     }
@@ -112,18 +127,6 @@ public class VerificationActivity extends AppCompatActivity {
                 @Override
                 public void afterTextChanged(Editable s) {}
             });
-
-            // Handle backspace
-            otpFields[i].setOnKeyListener((v, keyCode, event) -> {
-                if (keyCode == 67 && event.getAction() == 0) { // Backspace pressed
-                    if (otpFields[index].getText().toString().isEmpty() && index > 0) {
-                        otpFields[index - 1].requestFocus();
-                        otpFields[index - 1].setText("");
-                        return true;
-                    }
-                }
-                return false;
-            });
         }
     }
 
@@ -131,13 +134,7 @@ public class VerificationActivity extends AppCompatActivity {
         String otp = getOTPString();
         boolean isComplete = otp.length() == 6;
         btnVerify.setEnabled(isComplete);
-
-        // Update button appearance
-        if (isComplete) {
-            btnVerify.setAlpha(1f);
-        } else {
-            btnVerify.setAlpha(0.5f);
-        }
+        btnVerify.setAlpha(isComplete ? 1.0f : 0.5f);
     }
 
     private String getOTPString() {
@@ -156,33 +153,90 @@ public class VerificationActivity extends AppCompatActivity {
             return;
         }
 
-        // Show loading
         btnVerify.setEnabled(false);
         btnVerify.setText("Verifying...");
 
-        // Simulate verification (replace with actual Firebase/API call)
-        simulateVerification(otp);
+        // REAL FIREBASE OTP VERIFICATION
+        if (verificationId != null) {
+            PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
+            signInWithPhoneCredential(credential);
+        } else {
+            Toast.makeText(this, "Verification session expired. Please request new OTP.", Toast.LENGTH_SHORT).show();
+            resetVerifyButton();
+        }
     }
 
-    private void simulateVerification(String otp) {
-        // This is a simulation - replace with actual verification logic
-        new android.os.Handler().postDelayed(() -> {
-            // For testing: accept any 6-digit OTP starting with 1-9
-            if (otp.matches("[1-9][0-9]{5}")) {
-                Toast.makeText(VerificationActivity.this, "Verification successful!", Toast.LENGTH_SHORT).show();
-                proceedToMain();
-            } else {
-                Toast.makeText(VerificationActivity.this, "Invalid OTP. Please try again.", Toast.LENGTH_SHORT).show();
-                highlightInvalidOTP();
-                resetVerifyButton();
-            }
-        }, 1500);
+    private void signInWithPhoneCredential(PhoneAuthCredential credential) {
+        firebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(VerificationActivity.this, "✓ Phone verified successfully!", Toast.LENGTH_SHORT).show();
+
+                        if (isPhoneVerification) {
+                            // For phone verification (after signup), go to Login
+                            redirectToLogin();
+                        } else {
+                            // For direct phone login, go to Main
+                            proceedToMain();
+                        }
+                    } else {
+                        Toast.makeText(VerificationActivity.this,
+                                "Verification failed: " + (task.getException() != null ?
+                                        task.getException().getMessage() : "Unknown error"),
+                                Toast.LENGTH_LONG).show();
+                        highlightInvalidOTP();
+                        resetVerifyButton();
+                    }
+                });
+    }
+
+    private void sendOTP() {
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            Toast.makeText(this, "Phone number required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Add country code if not present
+        if (!phoneNumber.startsWith("+")) {
+            phoneNumber = "+91" + phoneNumber; // Default India code
+        }
+
+        Toast.makeText(this, "Sending OTP...", Toast.LENGTH_SHORT).show();
+
+        PhoneAuthOptions options = PhoneAuthOptions.newBuilder(firebaseAuth)
+                .setPhoneNumber(phoneNumber)
+                .setTimeout(60L, TimeUnit.SECONDS)
+                .setActivity(this)
+                .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    @Override
+                    public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
+                        // Auto-verification (SMS auto-read)
+                        Toast.makeText(VerificationActivity.this, "Auto-verified!", Toast.LENGTH_SHORT).show();
+                        signInWithPhoneCredential(credential);
+                    }
+
+                    @Override
+                    public void onVerificationFailed(@NonNull FirebaseException e) {
+                        Toast.makeText(VerificationActivity.this,
+                                "Failed to send OTP: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onCodeSent(@NonNull String verificationId,
+                                           @NonNull PhoneAuthProvider.ForceResendingToken token) {
+                        VerificationActivity.this.verificationId = verificationId;
+                        resendToken = token;
+                        Toast.makeText(VerificationActivity.this, "OTP sent successfully!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .build();
+
+        PhoneAuthProvider.verifyPhoneNumber(options);
     }
 
     private void resetVerifyButton() {
         btnVerify.setEnabled(true);
         btnVerify.setText("Verify & Continue");
-        btnVerify.setAlpha(1f);
     }
 
     private void highlightInvalidOTP() {
@@ -192,7 +246,6 @@ public class VerificationActivity extends AppCompatActivity {
             }
         }
 
-        // Clear error after 2 seconds
         new android.os.Handler().postDelayed(this::clearOTPErrors, 2000);
     }
 
@@ -229,19 +282,23 @@ public class VerificationActivity extends AppCompatActivity {
             tvCountdown.setVisibility(View.VISIBLE);
             tvCountdown.setText("Resend in 60 seconds");
 
-            Toast.makeText(this, "Resending OTP...", Toast.LENGTH_SHORT).show();
-
-            // Simulate resend delay
-            new android.os.Handler().postDelayed(() -> {
-                Toast.makeText(this, "OTP resent successfully!", Toast.LENGTH_SHORT).show();
+            if (phoneNumber != null && !phoneNumber.isEmpty()) {
+                sendOTP();
                 startCountdown();
-            }, 2000);
+            }
         }
     }
 
     private void callMeInstead() {
-        Toast.makeText(this, "Call verification feature coming soon", Toast.LENGTH_SHORT).show();
-        // You can implement voice call verification here
+        Toast.makeText(this, "Call verification coming soon", Toast.LENGTH_SHORT).show();
+        // Implement voice call verification
+    }
+
+    private void redirectToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void proceedToMain() {
@@ -253,7 +310,6 @@ public class VerificationActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Show confirmation dialog
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Cancel Verification?")
                 .setMessage("Are you sure you want to go back? You'll need to restart the verification process.")

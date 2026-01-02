@@ -19,6 +19,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -184,7 +185,7 @@ public class VenueDetailActivity extends AppCompatActivity implements OnMapReady
 
     private void bookVenue() {
         Intent intent = new Intent(this, BookingActivity.class);
-        intent.putExtra("venue", (CharSequence) venue);
+        intent.putExtra("venue", (Serializable) venue);
         startActivity(intent);
     }
 

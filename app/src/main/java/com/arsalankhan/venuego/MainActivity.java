@@ -15,6 +15,7 @@ import com.arsalankhan.venuego.databinding.ActivityMainBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setupUI();
+        setupBottomNavigation(); // Add this line
         setupVenuesRecyclerView();
         getUserLocationAndLoadVenues();
         loadTrendingVenues();
@@ -74,9 +76,11 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, NotificationsActivity.class));
         });
 
-        // Start New Plan button
+        // Start New Plan button - FIXED: Now navigates to SearchFilterActivity
         binding.btnStartNewPlan.setOnClickListener(v -> {
-            startActivity(new Intent(this, CreateEventActivity.class));
+            Intent intent = new Intent(this, SearchFilterActivity.class);
+            intent.putExtra("start_new_plan", true); // Optional: flag to indicate it's from "Start New Plan"
+            startActivity(intent);
         });
 
         // View All Nearby button
@@ -163,6 +167,54 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // 1. Fix Bottom Navigation in MainActivity.java (add this method):
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNav = binding.bottomNavigationBar; // Use binding instead of findViewById
+
+        // Set the home item as selected by default
+        bottomNav.setSelectedItemId(R.id.nav_home);
+
+        bottomNav.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+
+            // Don't start a new activity if we're already on that screen
+            if (itemId == R.id.nav_home) {
+                // Already on home, just return true
+                return true;
+            } else if (itemId == R.id.nav_search) {
+                // Clear back stack to prevent going back to home when pressing back from search
+                Intent intent = new Intent(this, SearchFilterActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_favorites) {
+                Intent intent = new Intent(this, FavoritesActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_booking) {
+                Intent intent = new Intent(this, BookingsActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!authService.isUserLoggedIn()) {
+            redirectToLogin();
+        } else {
+            // Reset the bottom navigation to show home as selected when returning to MainActivity
+            if (binding != null && binding.bottomNavigationBar != null) {
+                binding.bottomNavigationBar.setSelectedItemId(R.id.nav_home);
+            }
+        }
+    }
+
     private void showEmailVerificationDialog() {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Email Not Verified")
@@ -189,13 +241,5 @@ public class MainActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (!authService.isUserLoggedIn()) {
-            redirectToLogin();
-        }
     }
 }

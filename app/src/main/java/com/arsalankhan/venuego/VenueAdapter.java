@@ -19,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -144,7 +145,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
 
     private void bookVenue(Venue venue) {
         Intent intent = new Intent(context, BookingActivity.class);
-        intent.putExtra("venue", (CharSequence) venue);
+        intent.putExtra("venue", (Serializable) venue);
         context.startActivity(intent);
     }
 

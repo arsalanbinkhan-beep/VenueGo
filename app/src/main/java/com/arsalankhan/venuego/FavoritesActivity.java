@@ -115,7 +115,12 @@ public class FavoritesActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        // Add animation for smoother transition
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
     @Override
     protected void onResume() {
         super.onResume();

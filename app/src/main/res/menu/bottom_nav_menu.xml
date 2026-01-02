@@ -3,20 +3,24 @@
     <item
         android:id="@+id/nav_home"
         android:icon="@drawable/ic_home"
-        android:title="Home" />
+        android:title="Home"
+        android:enabled="true"/>
 
     <item
         android:id="@+id/nav_search"
         android:icon="@drawable/ic_search"
-        android:title="Search" />
+        android:title="Search"
+        android:enabled="true"/>
 
     <item
         android:id="@+id/nav_favorites"
         android:icon="@drawable/ic_favorites"
-        android:title="Favorites" />
+        android:title="Favorites"
+        android:enabled="true"/>
 
     <item
         android:id="@+id/nav_booking"
         android:icon="@drawable/ic_booking"
-        android:title="Bookings" />
+        android:title="Bookings"
+        android:enabled="true"/>
 </menu>
