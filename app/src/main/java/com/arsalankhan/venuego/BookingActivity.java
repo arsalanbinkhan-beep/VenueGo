@@ -215,7 +215,6 @@ public class BookingActivity extends AppCompatActivity {
         booking.setEventType(binding.spinnerEventType.getSelectedItem().toString());
         booking.setGuestCount(Integer.parseInt(binding.tvGuestCount.getText().toString()));
         booking.setTotalPrice(totalPrice);
-        booking.setStatus("PENDING");
         booking.setBookingDate(new Date());
         booking.setSpecialRequirements(binding.etSpecialRequirements.getText().toString());
 

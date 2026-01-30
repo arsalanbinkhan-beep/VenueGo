@@ -2,28 +2,32 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.arsalankhan.venuego">
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
 
+    <!-- For offline maps -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!-- For weather updates -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="VenueGo"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.VenueGo">
+        android:label="@string/app_name"
+        android:theme="@style/Theme.VenueGo"
+        android:usesCleartextTraffic="true">
 
+        <!-- Activities -->
         <activity
             android:name=".SplashActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:theme="@style/Theme.VenueGo"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,41 +37,37 @@
 
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignupActivity" />
+        <activity android:name=".VerificationActivity" />
         <activity android:name=".MainActivity" />
         <activity android:name=".SearchFilterActivity" />
-        <activity android:name=".DataIngestionActivity" />
-
-        <!-- New Activities -->
-        <activity android:name=".FavoritesActivity" />
-        <activity android:name=".BookingsActivity" />
-        <activity android:name=".ProfileActivity" />
-        <activity android:name=".NotificationsActivity" />
-
-        <!-- Missing Activities from your list -->
-        <activity android:name=".VerificationActivity" />
         <activity android:name=".VenueListActivity" />
         <activity android:name=".VenueDetailActivity" />
+        <activity android:name=".BookingActivity" />
+        <activity android:name=".CreateEventActivity" />
+        <activity android:name=".BookingsActivity" />
+        <activity android:name=".FavoritesActivity" />
+        <activity android:name=".ProfileActivity" />
+        <activity android:name=".NotificationsActivity" />
+        <activity android:name=".DataIngestionActivity" />
 
         <!-- Services -->
-        <service
-            android:name=".DataSyncService"
-            android:exported="false" />
-
-        <!-- Missing Services from your list -->
-        <service
-            android:name=".VenueService"
-            android:exported="false" />
-        <service
-            android:name=".WeatherService"
-            android:exported="false" />
+        <service android:name=".DataSyncService" />
 
         <!-- Receivers -->
-        <receiver
-            android:name=".DataSyncReceiver"
-            android:exported="false" />
+        <receiver android:name=".DataSyncReceiver" />
+
+        <!-- Meta-data for Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY" />
+            android:value="@string/google_maps_key" />
+
+        <!-- Firebase -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/vibrant_purple" />
 
     </application>
 

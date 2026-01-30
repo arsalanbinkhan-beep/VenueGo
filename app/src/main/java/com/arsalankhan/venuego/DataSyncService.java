@@ -20,6 +20,10 @@ public class DataSyncService extends Service {
     private OSMDataService osmDataService;
     private Context context;
 
+    public DataSyncService() {
+        super();
+    }
+
     public DataSyncService(Context context) {
         // Required empty constructor
     }

@@ -198,7 +198,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
     private void checkWeatherAndFindVenues(Event event) {
         // Get weather service
-        WeatherService weatherService = new WeatherService();
+        WeatherService weatherService = new WeatherService(this);
 
         // Get user's location for weather
         // For now, use default location (Mumbai)
@@ -231,7 +231,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
     private void findAIRecVenues(Event event) {
         // Use AI recommendation service
-        AIRecommendationService aiService = new AIRecommendationService();
+        AIRecommendationService aiService = new AIRecommendationService(this);
 
         aiService.recommendVenues(event, new AIRecommendationService.RecommendationCallback() {
             @Override
