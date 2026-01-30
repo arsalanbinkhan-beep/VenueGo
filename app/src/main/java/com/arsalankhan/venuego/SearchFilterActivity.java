@@ -69,6 +69,7 @@ public class SearchFilterActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
         aiService = new AIRecommendationService(this);
 
+
         initializeViews();
 
         // Check if views were initialized correctly
