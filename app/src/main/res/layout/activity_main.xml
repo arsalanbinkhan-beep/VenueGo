@@ -8,7 +8,6 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- Top Bar -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,7 +45,6 @@
             android:contentDescription="Profile"/>
     </RelativeLayout>
 
-    <!-- Main Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -59,7 +57,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Greeting Section -->
             <TextView
                 android:id="@+id/greeting_user"
                 android:layout_width="wrap_content"
@@ -78,38 +75,25 @@
                 android:textSize="16sp"
                 android:layout_marginTop="4dp"/>
 
-            <!-- Start New Plan Button -->
-            <RelativeLayout
-                android:id="@+id/search_bar_layout"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_start_new_plan"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp">
+                android:layout_marginTop="24dp"
+                android:backgroundTint="@color/vibrant_purple"
+                android:gravity="start|center_vertical"
+                android:paddingStart="24dp"
+                android:text="Start a New Plan"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_search"
+                app:iconGravity="end"
+                app:iconPadding="16dp"
+                app:iconSize="28dp"
+                app:iconTint="@android:color/white" />
 
-                <Button
-                    android:id="@+id/btn_start_new_plan"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:text="Start a New Plan"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp"
-                    android:backgroundTint="@color/vibrant_purple"
-                    android:drawablePadding="0dp"
-                    android:paddingStart="24dp"
-                    android:gravity="start|center_vertical"
-                    android:textAllCaps="false"/>
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_search"
-                    app:tint="@android:color/white"
-                    android:layout_centerVertical="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="24dp"
-                    android:contentDescription="Search Icon"/>
-            </RelativeLayout>
-
-            <!-- Nearby Venues Section -->
             <TextView
                 android:id="@+id/nearby_venues_title"
                 android:layout_width="wrap_content"
@@ -141,7 +125,6 @@
                 android:layout_marginTop="16dp"
                 android:layout_gravity="center_horizontal"/>
 
-            <!-- Trending Venues Section -->
             <TextView
                 android:id="@+id/trending_venues_title"
                 android:layout_width="wrap_content"
@@ -163,7 +146,6 @@
                 android:orientation="horizontal"
                 />
 
-            <!-- View All Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -197,7 +179,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_bar"
         android:layout_width="match_parent"

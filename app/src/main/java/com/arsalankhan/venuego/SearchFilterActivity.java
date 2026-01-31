@@ -19,8 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -64,27 +62,22 @@ public class SearchFilterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search); // Make sure this is the correct layout name
+        setContentView(R.layout.activity_search); // Updated layout name
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         databaseHelper = new DatabaseHelper(this);
         aiService = new AIRecommendationService(this);
 
         initializeViews();
-
-        if (spinnerCity != null) {
-            setupEventListeners();
-            loadUserLocation();
-        } else {
-            Toast.makeText(this, "Spinner not found in layout", Toast.LENGTH_SHORT).show();
-        }
+        setupEventListeners();
+        loadUserLocation();
     }
 
     private void initializeViews() {
         try {
-            // Initialize spinner with the correct ID from XML
+            // Initialize all views with correct IDs
             spinnerCity = findViewById(R.id.spinner_city);
-
+            tvLocation = findViewById(R.id.tv_location); // This was missing
             etSearchQuery = findViewById(R.id.et_search_venue);
             chipGroupEventType = findViewById(R.id.chip_group_event_type);
             chipGroupVenueCategory = findViewById(R.id.chip_group_venue_category);
@@ -98,37 +91,29 @@ public class SearchFilterActivity extends AppCompatActivity {
             btnUseCurrentLocation = findViewById(R.id.btn_use_current_location);
 
             // Setup city spinner
-            if (spinnerCity != null) {
-                ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(
-                        this, android.R.layout.simple_spinner_item, cities);
-                cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerCity.setAdapter(cityAdapter);
+            ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(
+                    this, android.R.layout.simple_spinner_item, cities);
+            cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerCity.setAdapter(cityAdapter);
 
-                // Set default city
-                int defaultPosition = cities.indexOf("Mumbai");
-                if (defaultPosition >= 0) {
-                    spinnerCity.setSelection(defaultPosition);
-                }
+            // Set default city
+            int defaultPosition = cities.indexOf("Mumbai");
+            if (defaultPosition >= 0) {
+                spinnerCity.setSelection(defaultPosition);
             }
 
             // Setup seek bars
-            if (seekBarGuests != null) {
-                seekBarGuests.setMax(1000); // 10 to 1000 guests
-                seekBarGuests.setProgress(100);
-            }
+            seekBarGuests.setMax(1000); // 10 to 1000 guests
+            seekBarGuests.setProgress(100);
 
-            if (seekBarBudget != null) {
-                seekBarBudget.setMax(200000); // 10K to 2L
-                seekBarBudget.setProgress(50000);
-            }
+            seekBarBudget.setMax(200000); // 10K to 2L
+            seekBarBudget.setProgress(50000);
 
             updateGuestCountText();
             updateBudgetText();
 
             // Initialize location text
-            if (tvLocation != null) {
-                tvLocation.setText("Mumbai, Maharashtra");
-            }
+            tvLocation.setText("Mumbai, Maharashtra");
 
         } catch (Exception e) {
             Log.e("SearchFilterActivity", "Error initializing views: " + e.getMessage());
@@ -137,82 +122,80 @@ public class SearchFilterActivity extends AppCompatActivity {
     }
 
     private void setupEventListeners() {
-        if (etSearchQuery != null) {
-            etSearchQuery.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        etSearchQuery.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    if (s.length() > 3 && s.toString().contains(" ")) {
-                        processNaturalLanguageQuery(s.toString());
-                    }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 3 && s.toString().contains(" ")) {
+                    processNaturalLanguageQuery(s.toString());
                 }
+            }
 
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
-        if (seekBarGuests != null) {
-            seekBarGuests.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    guestCount = Math.max(10, progress);
-                    updateGuestCountText();
-                }
+        seekBarGuests.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                guestCount = Math.max(10, progress);
+                updateGuestCountText();
+            }
 
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {}
-            });
-        }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
 
-        if (seekBarBudget != null) {
-            seekBarBudget.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    maxBudget = Math.max(10000, progress);
-                    updateBudgetText();
-                }
+        seekBarBudget.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                maxBudget = Math.max(10000, progress);
+                updateBudgetText();
+            }
 
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {}
-            });
-        }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
 
-        if (spinnerCity != null) {
-            spinnerCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    selectedCity = cities.get(position);
-                    if (tvLocation != null) {
-                        tvLocation.setText(selectedCity + ", Maharashtra");
-                    }
-                }
+        spinnerCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedCity = cities.get(position);
+                tvLocation.setText(selectedCity + ", Maharashtra");
+            }
 
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
-        }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
-        if (btnUseCurrentLocation != null) {
-            btnUseCurrentLocation.setOnClickListener(v -> {
-                useLocation = true;
-                loadUserLocation();
-            });
-        }
+        btnUseCurrentLocation.setOnClickListener(v -> {
+            useLocation = true;
+            loadUserLocation();
+        });
 
-        if (btnShowVenues != null) {
-            btnShowVenues.setOnClickListener(v -> searchVenues());
-        }
+        btnShowVenues.setOnClickListener(v -> searchVenues());
+
+        // Setup switch listeners
+        switchGuests.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Enable/disable guest seekbar based on switch state
+            seekBarGuests.setEnabled(isChecked);
+            tvGuestCount.setEnabled(isChecked);
+        });
+
+        switchOutdoor.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Handle outdoor filter logic
+        });
     }
 
+    // Rest of your methods remain the same...
     private void processNaturalLanguageQuery(String query) {
         if (aiService != null) {
             aiService.processNaturalLanguageQuery(query,
@@ -228,36 +211,28 @@ public class SearchFilterActivity extends AppCompatActivity {
     private void applyNLPFilters(Map<String, Object> filters) {
         if (filters.containsKey("minCapacity")) {
             guestCount = (int) filters.get("minCapacity");
-            if (seekBarGuests != null) {
-                seekBarGuests.setProgress(guestCount);
-            }
+            seekBarGuests.setProgress(guestCount);
             updateGuestCountText();
         }
 
         if (filters.containsKey("city")) {
             selectedCity = filters.get("city").toString();
             int position = cities.indexOf(selectedCity);
-            if (position >= 0 && spinnerCity != null) {
+            if (position >= 0) {
                 spinnerCity.setSelection(position);
             }
-            if (tvLocation != null) {
-                tvLocation.setText(selectedCity + ", Maharashtra");
-            }
+            tvLocation.setText(selectedCity + ", Maharashtra");
         }
 
         if (filters.containsKey("maxPrice")) {
             maxBudget = (double) filters.get("maxPrice");
-            if (seekBarBudget != null) {
-                seekBarBudget.setProgress((int) maxBudget);
-            }
+            seekBarBudget.setProgress((int) maxBudget);
             updateBudgetText();
         }
 
         if (filters.containsKey("type")) {
             String type = filters.get("type").toString();
-            if (switchOutdoor != null) {
-                switchOutdoor.setChecked(type.equals("outdoor"));
-            }
+            switchOutdoor.setChecked(type.equals("outdoor"));
         }
 
         if (filters.containsKey("eventType")) {
@@ -267,33 +242,34 @@ public class SearchFilterActivity extends AppCompatActivity {
     }
 
     private void highlightEventTypeChip(String eventType) {
-        if (chipGroupEventType != null) {
-            for (int i = 0; i < chipGroupEventType.getChildCount(); i++) {
-                Chip chip = (Chip) chipGroupEventType.getChildAt(i);
-                if (chip.getText().toString().toLowerCase().contains(eventType)) {
-                    chip.setChecked(true);
-                    break;
-                }
+        for (int i = 0; i < chipGroupEventType.getChildCount(); i++) {
+            Chip chip = (Chip) chipGroupEventType.getChildAt(i);
+            if (chip.getText().toString().toLowerCase().contains(eventType.toLowerCase())) {
+                chip.setChecked(true);
+                break;
             }
         }
     }
 
     private void updateGuestCountText() {
-        if (tvGuestCount != null) {
-            tvGuestCount.setText("Guests: " + guestCount);
-        }
+        tvGuestCount.setText("Guests: " + guestCount);
     }
 
     private void updateBudgetText() {
-        if (tvMaxBudget != null) {
-            NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
-            format.setMaximumFractionDigits(0);
-            tvMaxBudget.setText("Max Budget: " + format.format(maxBudget));
-        }
+        NumberFormat format = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+        format.setMaximumFractionDigits(0);
+        tvMaxBudget.setText("Max Budget: " + format.format(maxBudget));
     }
 
     private void loadUserLocation() {
         try {
+            if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                // Request permission
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                return;
+            }
+
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, location -> {
                         if (location != null && useLocation) {
@@ -301,14 +277,17 @@ public class SearchFilterActivity extends AppCompatActivity {
                             if (city != null) {
                                 selectedCity = city;
                                 int position = cities.indexOf(city);
-                                if (position >= 0 && spinnerCity != null) {
+                                if (position >= 0) {
                                     spinnerCity.setSelection(position);
                                 }
-                                if (tvLocation != null) {
-                                    tvLocation.setText(city + " (Current Location)");
-                                }
+                                tvLocation.setText(city + " (Current Location)");
                             }
+                        } else {
+                            Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
                         }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Location error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
         } catch (SecurityException e) {
             Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
@@ -334,19 +313,15 @@ public class SearchFilterActivity extends AppCompatActivity {
         Map<String, Object> filters = new HashMap<>();
 
         // Get selected event types
-        if (chipGroupEventType != null) {
-            List<String> selectedEventTypes = getSelectedChipTexts(chipGroupEventType);
-            if (!selectedEventTypes.isEmpty()) {
-                filters.put("eventTypes", selectedEventTypes);
-            }
+        List<String> selectedEventTypes = getSelectedChipTexts(chipGroupEventType);
+        if (!selectedEventTypes.isEmpty()) {
+            filters.put("eventTypes", selectedEventTypes);
         }
 
         // Get selected venue categories
-        if (chipGroupVenueCategory != null) {
-            List<String> selectedCategories = getSelectedChipTexts(chipGroupVenueCategory);
-            if (!selectedCategories.isEmpty()) {
-                filters.put("categories", selectedCategories);
-            }
+        List<String> selectedCategories = getSelectedChipTexts(chipGroupVenueCategory);
+        if (!selectedCategories.isEmpty()) {
+            filters.put("categories", selectedCategories);
         }
 
         // Add other filters
@@ -354,18 +329,16 @@ public class SearchFilterActivity extends AppCompatActivity {
         filters.put("minCapacity", guestCount);
         filters.put("maxPrice", maxBudget);
 
-        if (switchOutdoor != null && switchOutdoor.isChecked()) {
+        if (switchOutdoor.isChecked()) {
             filters.put("type", "outdoor");
         } else {
             filters.put("type", "indoor");
         }
 
         // Get NLP query if any
-        if (etSearchQuery != null) {
-            String query = etSearchQuery.getText().toString().trim();
-            if (!query.isEmpty()) {
-                filters.put("query", query);
-            }
+        String query = etSearchQuery.getText().toString().trim();
+        if (!query.isEmpty()) {
+            filters.put("query", query);
         }
 
         // Show loading
@@ -374,8 +347,8 @@ public class SearchFilterActivity extends AppCompatActivity {
         // Search in local database first
         List<Venue> venues = databaseHelper.searchVenuesWithFilters(
                 selectedCity,
-                null, // category
-                switchOutdoor != null && switchOutdoor.isChecked() ? "outdoor" : "indoor",
+                selectedCategories.isEmpty() ? null : selectedCategories.get(0),
+                switchOutdoor.isChecked() ? "outdoor" : "indoor",
                 guestCount,
                 maxBudget
         );
@@ -448,6 +421,14 @@ public class SearchFilterActivity extends AppCompatActivity {
         super.onResume();
         if (useLocation) {
             loadUserLocation();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (databaseHelper != null) {
+            databaseHelper.close();
         }
     }
 }

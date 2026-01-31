@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:padding="24dp">
 
+            <!-- Title -->
             <TextView
                 android:id="@+id/title_search_filter"
                 android:layout_width="wrap_content"
@@ -31,6 +32,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- Search EditText -->
             <EditText
                 android:id="@+id/et_search_venue"
                 android:layout_width="match_parent"
@@ -46,9 +48,9 @@
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 app:layout_constraintTop_toBottomOf="@id/title_search_filter"
-                android:singleLine="true"/>
+                android:singleLine="true" />
 
-            <!-- CITY SPINNER -->
+            <!-- City Spinner -->
             <Spinner
                 android:id="@+id/spinner_city"
                 android:layout_width="match_parent"
@@ -60,16 +62,32 @@
                 android:spinnerMode="dropdown"
                 app:layout_constraintTop_toBottomOf="@+id/et_search_venue" />
 
-            <!-- CURRENT LOCATION BUTTON -->
+            <!-- Location Display TextView (Added) -->
+            <TextView
+                android:id="@+id/tv_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Mumbai, Maharashtra"
+                android:textColor="@color/light_gray_text"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="@id/spinner_city"
+                app:layout_constraintTop_toBottomOf="@id/spinner_city" />
+
+            <!-- Current Location Button -->
+
+            <!-- Event Type Title -->
             <Button
                 android:id="@+id/btn_use_current_location"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="12dp"
+                android:layout_width="333dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/vibrant_purple"
                 android:text="Use Current Location"
                 android:textColor="@android:color/white"
-                android:backgroundTint="@color/vibrant_purple"
-                app:layout_constraintTop_toBottomOf="@id/spinner_city" />
+                app:layout_constraintTop_toBottomOf="@id/tv_location"
+                app:layout_constraintStart_toStartOf="@id/tv_location"
+                tools:layout_editor_absoluteX="6dp" />
 
             <TextView
                 android:id="@+id/tv_event_type_title"
@@ -81,8 +99,9 @@
                 android:textStyle="bold"
                 android:layout_marginTop="32dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btn_use_current_location"/>
+                app:layout_constraintTop_toBottomOf="@id/btn_use_current_location" />
 
+            <!-- Event Type Chips -->
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chip_group_event_type"
                 android:layout_width="match_parent"
@@ -109,9 +128,9 @@
                     android:layout_height="wrap_content"
                     android:text="Corporate Conference"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
-                    app:chipBackgroundColor="@color/vibrant_purple"
-                    android:textColor="@android:color/white"
-                    app:chipStrokeColor="@color/vibrant_purple"
+                    app:chipBackgroundColor="@color/chip_background_inactive"
+                    android:textColor="@color/chip_text_color_inactive"
+                    app:chipStrokeColor="@color/chip_stroke_color_inactive"
                     app:chipStrokeWidth="1dp"
                     app:checkedIconVisible="false" />
 
@@ -150,6 +169,7 @@
 
             </com.google.android.material.chip.ChipGroup>
 
+            <!-- Venue Category Title -->
             <TextView
                 android:id="@+id/tv_venue_category_title"
                 android:layout_width="wrap_content"
@@ -160,8 +180,9 @@
                 android:textStyle="bold"
                 android:layout_marginTop="32dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chip_group_event_type"/>
+                app:layout_constraintTop_toBottomOf="@id/chip_group_event_type" />
 
+            <!-- Venue Category Chips -->
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chip_group_venue_category"
                 android:layout_width="match_parent"
@@ -188,9 +209,9 @@
                     android:layout_height="wrap_content"
                     android:text="Open Grounds"
                     style="@style/Widget.MaterialComponents.Chip.Filter"
-                    app:chipBackgroundColor="@color/vibrant_purple"
-                    android:textColor="@android:color/white"
-                    app:chipStrokeColor="@color/vibrant_purple"
+                    app:chipBackgroundColor="@color/chip_background_inactive"
+                    android:textColor="@color/chip_text_color_inactive"
+                    app:chipStrokeColor="@color/chip_stroke_color_inactive"
                     app:chipStrokeWidth="1dp"
                     app:checkedIconVisible="false" />
 
@@ -240,6 +261,7 @@
 
             </com.google.android.material.chip.ChipGroup>
 
+            <!-- Toggle Switches Layout -->
             <LinearLayout
                 android:id="@+id/ll_guests_toggle"
                 android:layout_width="match_parent"
@@ -256,7 +278,7 @@
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:layout_marginEnd="8dp"/>
+                    android:layout_marginEnd="8dp" />
 
                 <Switch
                     android:id="@+id/switch_guests"
@@ -270,12 +292,12 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Open Grounds"
+                    android:text="Outdoor"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:layout_marginStart="24dp"
-                    android:layout_marginEnd="8dp"/>
+                    android:layout_marginEnd="8dp" />
 
                 <Switch
                     android:id="@+id/switch_outdoor"
@@ -308,7 +330,7 @@
                 android:progress="50000"
                 app:layout_constraintTop_toBottomOf="@id/seekBar_guests" />
 
-            <!-- Guest and Budget Text Views (updated by seekbars) -->
+            <!-- Guest and Budget Display Layout -->
             <LinearLayout
                 android:id="@+id/ll_guests_budget"
                 android:layout_width="match_parent"
@@ -326,7 +348,7 @@
                     android:drawableStart="@drawable/ic_guests"
                     android:drawablePadding="12dp"
                     android:gravity="center_vertical"
-                    android:text="Guests: 150"
+                    android:text="Guests: 100"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:paddingStart="16dp"
@@ -337,20 +359,21 @@
                     android:id="@+id/tv_max_budget"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_edittext_background"
                     android:drawableStart="@drawable/ic_budget"
                     android:drawablePadding="12dp"
                     android:gravity="center_vertical"
-                    android:text="Max Budget: ₹50,000"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
-                    android:layout_marginStart="8dp" />
+                    android:text="Max Budget: ₹50,000"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp" />
 
             </LinearLayout>
 
+            <!-- Show Venues Button -->
             <Button
                 android:id="@+id/btn_show_venues"
                 android:layout_width="match_parent"

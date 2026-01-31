@@ -14,10 +14,23 @@
         <item name="colorSecondaryVariant">@color/green_success</item>
         <item name="colorOnSecondary">@color/text_primary</item>
 
+        <!-- Surface Colors -->
+        <item name="colorSurface">@color/background_card</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- Background Colors -->
+        <item name="android:colorBackground">@color/background_dark</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+
+        <!-- Error Color -->
+        <item name="colorError">@color/red_error</item>
+        <item name="colorOnError">@color/text_primary</item>
+
         <!-- System UI -->
         <item name="android:statusBarColor" tools:targetApi="l">
             ?attr/colorPrimaryVariant
         </item>
+        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
 
         <!-- Window / Text -->
         <item name="android:windowBackground">@color/background_dark</item>
@@ -27,8 +40,13 @@
         <!-- Material Widgets -->
         <item name="materialButtonStyle">@style/Widget.VenueGo.Button</item>
         <item name="textInputStyle">@style/Widget.VenueGo.TextInputLayout</item>
-        <item name="chipStyle">@style/Widget.VenueGo.Chip</item>
+        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice</item> <!-- Use default for now -->
         <item name="cardViewStyle">@style/Widget.VenueGo.CardView</item>
+
+        <!-- Shape Appearance -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.VenueGo.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.VenueGo.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.VenueGo.LargeComponent</item>
     </style>
 
     <!-- ===================== -->
@@ -74,6 +92,7 @@
     <!-- ===================== -->
     <!-- Chip Styles -->
     <!-- ===================== -->
+    <!-- FIXED: Correct Chip style with proper attributes -->
     <style name="Widget.VenueGo.Chip"
         parent="Widget.MaterialComponents.Chip.Choice">
 
@@ -82,14 +101,37 @@
         <item name="chipStrokeColor">@color/border_light</item>
         <item name="chipStrokeWidth">1dp</item>
         <item name="chipCornerRadius">20dp</item>
+        <item name="closeIconTint">@color/text_primary</item>
+        <item name="textEndPadding">8dp</item>
+        <item name="textStartPadding">8dp</item>
+        <!-- Use textAppearance instead of textColor -->
+        <item name="android:textAppearance">@style/TextAppearance.VenueGo.Chip</item>
     </style>
 
     <style name="Widget.VenueGo.Chip.Selected"
-        parent="Widget.VenueGo.Chip">
+        parent="Widget.MaterialComponents.Chip.Choice">
 
         <item name="chipSurfaceColor">@color/chip_selected</item>
         <item name="chipBackgroundColor">@color/chip_selected</item>
         <item name="chipStrokeColor">@color/chip_selected</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <!-- Use textAppearance instead of textColor -->
+        <item name="android:textAppearance">@style/TextAppearance.VenueGo.Chip.Selected</item>
+    </style>
+
+    <!-- Chip Text Appearance -->
+    <style name="TextAppearance.VenueGo.Chip"
+        parent="TextAppearance.MaterialComponents.Chip">
+
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Chip.Selected"
+        parent="TextAppearance.MaterialComponents.Chip">
+
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
     <!-- ===================== -->
@@ -115,6 +157,8 @@
         </item>
         <item name="android:windowMinWidthMajor">90%</item>
         <item name="android:windowMinWidthMinor">90%</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.VenueGo.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.VenueGo.Button.Outlined</item>
     </style>
 
     <!-- ===================== -->
@@ -188,6 +232,8 @@
         </item>
         <item name="android:background">@color/background_dark</item>
         <item name="elevation">0dp</item>
+        <item name="navigationIconTint">@color/text_primary</item>
+        <item name="titleTextColor">@color/text_primary</item>
     </style>
 
     <!-- ===================== -->
@@ -253,7 +299,26 @@
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:textSize">14sp</item>
     </style>
+
+    <!-- ===================== -->
+    <!-- RatingBar -->
+    <!-- ===================== -->
     <style name="RatingBar" parent="Widget.AppCompat.RatingBar">
-        <item name="colorControlNormal">#FFCC00</item> <item name="colorControlActivated">#FFD700</item> </style>
+        <item name="colorControlNormal">#FFCC00</item>
+        <item name="colorControlActivated">#FFD700</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- Material Chip Entry -->
+    <!-- ===================== -->
+    <style name="Widget.VenueGo.Chip.Entry"
+        parent="Widget.MaterialComponents.Chip.Entry">
+
+        <item name="chipBackgroundColor">@color/chip_unselected</item>
+        <item name="chipStrokeColor">@color/border_light</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipCornerRadius">20dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.VenueGo.Chip</item>
+    </style>
 
 </resources>
