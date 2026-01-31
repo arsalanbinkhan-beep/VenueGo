@@ -1,19 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
--->
+<?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="root" path="cache"/>
+        <exclude domain="root" path="no_backup"/>
+        <exclude domain="file" path="*.tmp"/>
+        <exclude domain="database" path="*.journal"/>
+        <exclude domain="database" path="*.wal"/>
+        <exclude domain="sharedpref" path="com.google.firebase.crashlytics"/>
     </cloud-backup>
-    <!--
+
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <include domain="sharedpref" path="."/>
+        <include domain="database" path="venuego.db"/>
+        <include domain="file" path="venuego_cache/"/>
     </device-transfer>
-    -->
 </data-extraction-rules>

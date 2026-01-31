@@ -1,4 +1,227 @@
 <resources>
+    <!-- App Name -->
     <string name="app_name">VenueGo</string>
-    <string name="google_maps_key">YOUR_API_KEY_HERE</string>
+
+    <!-- Auth Strings -->
+    <string name="login">Log In</string>
+    <string name="signup">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="name">Name</string>
+    <string name="phone">Phone</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="have_account">Already have an account?</string>
+
+    <!-- Navigation -->
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+    <string name="favorites">Favorites</string>
+    <string name="bookings">Bookings</string>
+    <string name="profile">Profile</string>
+
+    <!-- Venue Strings -->
+    <string name="capacity">Capacity</string>
+    <string name="price">Price</string>
+    <string name="rating">Rating</string>
+    <string name="reviews">Reviews</string>
+    <string name="amenities">Amenities</string>
+    <string name="description">Description</string>
+    <string name="contact">Contact</string>
+    <string name="location">Location</string>
+
+    <!-- Booking Strings -->
+    <string name="book_now">Book Now</string>
+    <string name="confirm_booking">Confirm Booking</string>
+    <string name="event_date">Event Date</string>
+    <string name="event_time">Event Time</string>
+    <string name="guest_count">Guest Count</string>
+    <string name="special_requirements">Special Requirements</string>
+    <string name="total_price">Total Price</string>
+
+    <!-- Event Strings -->
+    <string name="create_event">Create Event</string>
+    <string name="event_name">Event Name</string>
+    <string name="event_type">Event Type</string>
+    <string name="event_description">Event Description</string>
+    <string name="budget_range">Budget Range</string>
+    <string name="venue_type">Venue Type</string>
+    <string name="indoor">Indoor</string>
+    <string name="outdoor">Outdoor</string>
+    <string name="both">Both</string>
+
+    <!-- Filter Strings -->
+    <string name="filter">Filter</string>
+    <string name="sort">Sort</string>
+    <string name="apply_filters">Apply Filters</string>
+    <string name="city">City</string>
+    <string name="category">Category</string>
+    <string name="min_capacity">Min Capacity</string>
+    <string name="max_price">Max Price</string>
+
+    <!-- Status Strings -->
+    <string name="pending">Pending</string>
+    <string name="confirmed">Confirmed</string>
+    <string name="cancelled">Cancelled</string>
+    <string name="completed">Completed</string>
+    <string name="upcoming">Upcoming</string>
+    <string name="past">Past</string>
+
+    <!-- Messages -->
+    <string name="loading">Loading...</string>
+    <string name="saving">Saving...</string>
+    <string name="processing">Processing...</string>
+    <string name="searching">Searching...</string>
+    <string name="no_results">No results found</string>
+    <string name="try_again">Try Again</string>
+    <string name="retry">Retry</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="check_connection">Please check your internet connection</string>
+
+    <!-- Success Messages -->
+    <string name="success">Success!</string>
+    <string name="booking_confirmed">Booking Confirmed!</string>
+    <string name="venue_added_favorites">Venue added to favorites</string>
+    <string name="venue_removed_favorites">Venue removed from favorites</string>
+    <string name="profile_updated">Profile updated successfully</string>
+
+    <!-- Error Messages -->
+    <string name="error_email_required">Email is required</string>
+    <string name="error_invalid_email">Please enter a valid email</string>
+    <string name="error_password_required">Password is required</string>
+    <string name="error_weak_password">Password must be at least 6 characters</string>
+    <string name="error_name_required">Name is required</string>
+    <string name="error_phone_required">Phone number is required</string>
+    <string name="error_invalid_phone">Please enter a valid phone number</string>
+    <string name="error_location_required">Location permission is required</string>
+
+    <!-- Dialog Titles -->
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="delete">Delete</string>
+    <string name="warning">Warning</string>
+    <string name="information">Information</string>
+
+    <!-- Placeholders -->
+    <string name="search_venues">Search venues...</string>
+    <string name="enter_event_name">Enter event name...</string>
+    <string name="enter_event_description">Describe your event...</string>
+    <string name="select_date">Select Date</string>
+    <string name="select_time">Select Time</string>
+    <string name="any_special_requirements">Any special requirements?</string>
+
+    <!-- Empty States -->
+    <string name="no_favorites">No favorite venues yet</string>
+    <string name="no_bookings">No bookings yet</string>
+    <string name="no_notifications">No notifications</string>
+    <string name="explore_venues">Explore Venues</string>
+    <string name="create_event_first">Create an event first</string>
+
+    <!-- Format Strings -->
+    <string name="format_guests">%d guests</string>
+    <string name="format_rating">%.1f</string>
+    <string name="format_reviews">(%d reviews)</string>
+    <string name="format_distance">%.1f km away</string>
+    <string name="format_price_range">₹%.0f - ₹%.0f</string>
+
+    <!-- Categories -->
+    <string name="category_banquet_hall">Banquet Hall</string>
+    <string name="category_community_center">Community Center</string>
+    <string name="category_conference_center">Conference Center</string>
+    <string name="category_hotel">Hotel</string>
+    <string name="category_restaurant">Restaurant</string>
+    <string name="category_open_ground">Open Ground</string>
+    <string name="category_stadium">Stadium</string>
+    <string name="category_auditorium">Auditorium</string>
+    <string name="category_sports_complex">Sports Complex</string>
+
+    <!-- Event Types -->
+    <string name="event_wedding">Wedding</string>
+    <string name="event_birthday">Birthday</string>
+    <string name="event_corporate">Corporate</string>
+    <string name="event_conference">Conference</string>
+    <string name="event_party">Party</string>
+    <string name="event_seminar">Seminar</string>
+    <string name="event_exhibition">Exhibition</string>
+    <string name="event_sports">Sports Event</string>
+
+    <!-- Amenities -->
+    <string name="amenity_parking">Parking</string>
+    <string name="amenity_ac">Air Conditioning</string>
+    <string name="amenity_wifi">WiFi</string>
+    <string name="amenity_catering">Catering</string>
+    <string name="amenity_stage">Stage</string>
+    <string name="amenity_sound_system">Sound System</string>
+    <string name="amenity_lighting">Lighting</string>
+    <string name="amenity_kitchen">Kitchen</string>
+    <string name="amenity_bar">Bar</string>
+    <string name="amenity_restrooms">Restrooms</string>
+    <string name="amenity_wheelchair">Wheelchair Access</string>
+    <string name="amenity_projector">Projector</string>
+    <string name="amenity_microphone">Microphone</string>
+
+    <!-- Weather Conditions -->
+    <string name="weather_clear">Clear</string>
+    <string name="weather_rainy">Rainy</string>
+    <string name="weather_cloudy">Cloudy</string>
+    <string name="weather_sunny">Sunny</string>
+    <string name="weather_windy">Windy</string>
+    <string name="weather_snow">Snow</string>
+
+    <!-- AI Recommendations -->
+    <string name="ai_recommendations">AI Recommendations</string>
+    <string name="weather_based_recommendations">Weather-based Recommendations</string>
+    <string name="perfect_for_weather">Perfect for current weather</string>
+    <string name="consider_indoor">Consider indoor due to weather</string>
+
+    <!-- Payment -->
+    <string name="pay_now">Pay Now</string>
+    <string name="payment_successful">Payment Successful</string>
+    <string name="payment_failed">Payment Failed</string>
+    <string name="payment_cancelled">Payment Cancelled</string>
+
+    <!-- Notifications -->
+    <string name="notifications">Notifications</string>
+    <string name="mark_all_read">Mark All Read</string>
+    <string name="clear_all">Clear All</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="my_preferences">My Preferences</string>
+    <string name="settings">Settings</string>
+    <string name="help_support">Help &amp; Support</string>
+    <string name="about_app">About App</string>
+    <string name="logout">Logout</string>
+    <string name="version">Version %s</string>
+
+    <!-- Settings -->
+    <string name="notifications_enabled">Notifications Enabled</string>
+    <string name="location_enabled">Location Services</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="language">Language</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_conditions">Terms &amp; Conditions</string>
+
+    <!-- OTP Verification -->
+    <string name="verify_otp">Verify OTP</string>
+    <string name="otp_sent">OTP sent to %s</string>
+    <string name="resend_otp">Resend OTP</string>
+    <string name="call_me_instead">Call me instead</string>
+    <string name="enter_otp">Enter 6-digit OTP</string>
+
+    <!-- Data Ingestion -->
+    <string name="fetch_data">Fetch OSM Data</string>
+    <string name="view_stats">View Statistics</string>
+    <string name="clear_data">Clear All Data</string>
+    <string name="total_venues">Total Venues: %d</string>
+    <string name="syncing_data">Syncing venue data…</string>
+
+    <!-- Empty Messages -->
+    <string name="no_nearby_venues">No nearby venues found</string>
+    <string name="no_trending_venues">No trending venues</string>
+    <string name="try_different_filters">Try different filters</string>
+    <string name="try_different_location">Try a different location</string>
 </resources>

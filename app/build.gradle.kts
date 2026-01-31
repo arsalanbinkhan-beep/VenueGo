@@ -1,7 +1,8 @@
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -16,6 +17,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -31,6 +33,7 @@ android {
     buildFeatures {
         viewBinding = true
         dataBinding = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -54,13 +57,18 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 
-    // ================= FIREBASE (BoM - VERSION MANAGED) =================
+    // ================= FIREBASE (BoM - FIXED) =================
     implementation(platform("com.google.firebase:firebase-bom:32.5.0"))
+
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-perf")
+    implementation("com.google.firebase:firebase-config")
 
     // ================= GOOGLE MAPS & AUTH =================
     implementation("com.google.android.gms:play-services-maps:18.2.0")
@@ -71,14 +79,34 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.json:json:20231013")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // ================= IMAGE LOADING =================
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
+    implementation("com.google.maps.android:android-maps-utils:3.8.0")
 
+    // ================= PAYMENT =================
+    implementation("com.razorpay:checkout:1.6.38")
 
+    // ================= IMAGE COMPRESSION =================
+    implementation("id.zelory:compressor:3.0.1")
 
+    // ================= UI EFFECTS =================
+    implementation("com.airbnb.android:lottie:6.3.0")
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
+
+    // ================= PERMISSIONS =================
+    implementation("com.karumi:dexter:6.2.3")
+
+    // ================= WORK MANAGER =================
+    implementation("androidx.work:work-runtime:2.9.0")
+
+    // ================= NAVIGATION =================
+    implementation("androidx.navigation:navigation-fragment:2.7.7")
+    implementation("androidx.navigation:navigation-ui:2.7.7")
 
     // ================= QR CODE =================
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")

@@ -16,22 +16,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DataSyncService extends Service {
+
     private FirebaseFirestore firestore;
     private OSMDataService osmDataService;
-    private Context context;
 
     public DataSyncService() {
         super();
     }
 
-    public DataSyncService(Context context) {
-        // Required empty constructor
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
-        context = this;
+        Context context = this;
         firestore = FirebaseFirestore.getInstance();
         osmDataService = new OSMDataService();
     }
@@ -48,26 +44,28 @@ public class DataSyncService extends Service {
         return null;
     }
 
-    public void scheduleDailySync() {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+    // ================= SCHEDULE DAILY SYNC =================
 
-        // Create the intent for the broadcast receiver
-        Intent intent = new Intent(context, DataSyncReceiver.class);
+    public void scheduleDailySync() {
+
+        AlarmManager alarmManager =
+                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        Intent intent = new Intent(this, DataSyncReceiver.class);
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
+                this,
                 0,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        // Set alarm to trigger daily at 2 AM
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, 2);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
 
-        // If the time has passed today, set for tomorrow
         if (calendar.getTimeInMillis() < System.currentTimeMillis()) {
             calendar.add(Calendar.DAY_OF_YEAR, 1);
         }
@@ -79,79 +77,99 @@ public class DataSyncService extends Service {
                     AlarmManager.INTERVAL_DAY,
                     pendingIntent
             );
-            Log.d("DataSyncService", "Daily sync scheduled for 2 AM");
         }
+
+        Log.d("DataSyncService", "Daily sync scheduled");
     }
 
-    public void performIncrementalSync() {
-        Log.d("DataSyncService", "Starting incremental sync");
+    // ================= SYNC PROCESS =================
 
-        // Get last sync timestamp
-        firestore.collection("data_sync").document("last_sync")
+    public void performIncrementalSync() {
+
+        firestore.collection("data_sync")
+                .document("last_sync")
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
+                .addOnSuccessListener(snapshot -> {
+
                     Date lastSync = null;
-                    if (documentSnapshot.exists()) {
-                        lastSync = documentSnapshot.getDate("timestamp");
+
+                    if (snapshot.exists()) {
+                        lastSync = snapshot.getDate("timestamp");
                     }
 
                     if (lastSync == null) {
-                        // First time sync, fetch all data
                         performFullSync();
                     } else {
-                        // Incremental sync based on last sync time
                         performIncrementalOSMSync(lastSync);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // If no sync record exists, do a full sync
-                    Log.e("DataSyncService", "Error getting last sync time: " + e.getMessage());
+                    Log.e("DataSyncService", "Fetch failed: " + e.getMessage());
                     performFullSync();
                 });
     }
 
-    private void performFullSync() {
-        osmDataService.fetchAndStoreMaharashtraVenues(new OSMDataService.OSMDataCallback() {
-            @Override
-            public void onSuccess(int venuesAdded) {
-                updateSyncStatus(venuesAdded, "completed");
-            }
+    // ================= FULL SYNC =================
 
-            @Override
-            public void onFailure(String error) {
-                updateSyncStatus(0, "failed");
-            }
-        });
+    private void performFullSync() {
+
+        osmDataService.fetchAndStoreMaharashtraVenues(
+                new OSMDataService.SimpleOSMDataCallback() {
+                    @Override
+                    public void onSuccess(int venuesAdded) {
+                        String message = "Successfully added " + venuesAdded + " venues";
+                        Log.d("DataSyncService", message);
+                        updateSyncStatus(venuesAdded, "completed");
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("DataSyncService", "Sync failed: " + error);
+                        updateSyncStatus(0, "failed");
+                    }
+                }
+        );
     }
 
+    // ================= INCREMENTAL (TEMP FULL) =================
+
     private void performIncrementalOSMSync(Date lastSync) {
-        // For now, we'll do a full sync
-        // In production, you would implement OSM changeset API for incremental updates
-        Log.d("DataSyncService", "Performing full sync instead of incremental");
+        Log.d("DataSyncService", "Incremental fallback → full sync");
         performFullSync();
     }
 
+    // ================= UPDATE FIRESTORE =================
+
     private void updateSyncStatus(int venuesAdded, String status) {
+
         Map<String, Object> syncData = new HashMap<>();
+
         syncData.put("timestamp", new Date());
         syncData.put("venues_added", venuesAdded);
         syncData.put("sync_status", status);
 
-        firestore.collection("data_sync").document("last_sync")
+        firestore.collection("data_sync")
+                .document("last_sync")
                 .set(syncData)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("DataSyncService", "Sync status updated: " + status + ", venues added: " + venuesAdded);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("DataSyncService", "Error updating sync status: " + e.getMessage());
-                });
+                .addOnSuccessListener(aVoid ->
+                        Log.d("DataSyncService", "Sync updated: " + status)
+                )
+                .addOnFailureListener(e ->
+                        Log.e("DataSyncService", "Update error: " + e.getMessage())
+                );
     }
 
+    // ================= CANCEL SYNC =================
+
     public void cancelDailySync() {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, DataSyncReceiver.class);
+
+        AlarmManager alarmManager =
+                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        Intent intent = new Intent(this, DataSyncReceiver.class);
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
+                this,
                 0,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
@@ -159,8 +177,9 @@ public class DataSyncService extends Service {
 
         if (alarmManager != null) {
             alarmManager.cancel(pendingIntent);
-            Log.d("DataSyncService", "Daily sync cancelled");
         }
+
+        Log.d("DataSyncService", "Daily sync cancelled");
     }
 
     @Override

@@ -5,6 +5,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -69,47 +70,26 @@ public class SearchFilterActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
         aiService = new AIRecommendationService(this);
 
-
         initializeViews();
-
-        // Check if views were initialized correctly
-        if (spinnerCity == null) {
-            Toast.makeText(this, "Layout issue: Spinner not found", Toast.LENGTH_SHORT).show();
-            // Try alternative ID or show error
-            findSpinnerWithAlternativeIds();
-        }
 
         if (spinnerCity != null) {
             setupEventListeners();
             loadUserLocation();
         } else {
-            // Fallback - create a basic UI
-            createFallbackUI();
+            Toast.makeText(this, "Spinner not found in layout", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void initializeViews() {
         try {
-            // Try with the original ID first
+            // Initialize spinner with the correct ID from XML
             spinnerCity = findViewById(R.id.spinner_city);
-
-            // If still null, try alternative IDs
-            if (spinnerCity == null) {
-                spinnerCity = findViewById(R.id.city_spinner);
-            }
-            if (spinnerCity == null) {
-                spinnerCity = findViewById(R.id.spinnerCity);
-            }
-            if (spinnerCity == null) {
-                spinnerCity = findViewById(R.id.spinner);
-            }
 
             etSearchQuery = findViewById(R.id.et_search_venue);
             chipGroupEventType = findViewById(R.id.chip_group_event_type);
             chipGroupVenueCategory = findViewById(R.id.chip_group_venue_category);
             switchGuests = findViewById(R.id.switch_guests);
             switchOutdoor = findViewById(R.id.switch_outdoor);
-            tvLocation = findViewById(R.id.tv_location_value);
             tvGuestCount = findViewById(R.id.tv_guests_count);
             tvMaxBudget = findViewById(R.id.tv_max_budget);
             seekBarGuests = findViewById(R.id.seekBar_guests);
@@ -117,12 +97,18 @@ public class SearchFilterActivity extends AppCompatActivity {
             btnShowVenues = findViewById(R.id.btn_show_venues);
             btnUseCurrentLocation = findViewById(R.id.btn_use_current_location);
 
-            // Setup city spinner only if it was found
+            // Setup city spinner
             if (spinnerCity != null) {
                 ArrayAdapter<String> cityAdapter = new ArrayAdapter<>(
                         this, android.R.layout.simple_spinner_item, cities);
                 cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerCity.setAdapter(cityAdapter);
+
+                // Set default city
+                int defaultPosition = cities.indexOf("Mumbai");
+                if (defaultPosition >= 0) {
+                    spinnerCity.setSelection(defaultPosition);
+                }
             }
 
             // Setup seek bars
@@ -139,56 +125,15 @@ public class SearchFilterActivity extends AppCompatActivity {
             updateGuestCountText();
             updateBudgetText();
 
+            // Initialize location text
+            if (tvLocation != null) {
+                tvLocation.setText("Mumbai, Maharashtra");
+            }
+
         } catch (Exception e) {
             Log.e("SearchFilterActivity", "Error initializing views: " + e.getMessage());
-            Toast.makeText(this, "Layout initialization error", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Layout initialization error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void findSpinnerWithAlternativeIds() {
-        // Try to find spinner with different possible IDs
-        int[] possibleSpinnerIds = {
-                R.id.spinner_city,
-                R.id.city_spinner,
-                R.id.spinnerCity,
-                R.id.spinner,
-                android.R.id.text1 // Default android ID
-        };
-
-        for (int id : possibleSpinnerIds) {
-            try {
-                View view = findViewById(id);
-                if (view instanceof Spinner) {
-                    spinnerCity = (Spinner) view;
-                    Toast.makeText(this, "Found spinner with ID: " + id, Toast.LENGTH_SHORT).show();
-                    break;
-                }
-            } catch (Exception e) {
-                // Ignore and try next ID
-            }
-        }
-    }
-
-    private void createFallbackUI() {
-        // Create a simple TextView for city selection if spinner is not found
-        TextView citySelector = new TextView(this);
-        citySelector.setText("Select City: " + selectedCity);
-        citySelector.setPadding(20, 20, 20, 20);
-        citySelector.setOnClickListener(v -> showCitySelectionDialog());
-        // Add to your layout
-        // You would need to get your root view and add this
-    }
-
-    private void showCitySelectionDialog() {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Select City");
-        builder.setItems(cities.toArray(new String[0]), (dialog, which) -> {
-            selectedCity = cities.get(which);
-            if (tvLocation != null) {
-                tvLocation.setText(selectedCity + ", Maharashtra");
-            }
-        });
-        builder.show();
     }
 
     private void setupEventListeners() {

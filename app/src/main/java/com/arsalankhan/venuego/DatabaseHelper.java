@@ -961,4 +961,131 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return stats;
     }
+    // Add these methods to your existing DatabaseHelper class:
+
+    public void incrementVenueViews(String venueId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("view_count", getVenueViews(venueId) + 1);
+        values.put(COLUMN_UPDATED_AT, dateFormat.format(new Date()));
+
+        db.update(TABLE_VENUES, values, COLUMN_ID + " = ?", new String[]{venueId});
+        db.close();
+    }
+
+    private int getVenueViews(String venueId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int views = 0;
+
+        String query = "SELECT view_count FROM " + TABLE_VENUES +
+                " WHERE " + COLUMN_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{venueId});
+
+        if (cursor.moveToFirst()) {
+            views = cursor.getInt(cursor.getColumnIndexOrThrow("view_count"));
+        }
+
+        cursor.close();
+        db.close();
+        return views;
+    }
+
+    public List<Venue> getTrendingVenues(int limit) {
+        List<Venue> venues = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_VENUES +
+                " ORDER BY view_count DESC, rating DESC" +
+                " LIMIT " + limit;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                venues.add(cursorToVenue(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return venues;
+    }
+
+    public List<Venue> getRecommendedVenues(String userId) {
+        List<Venue> venues = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Get user's booking history
+        List<Booking> bookings = getUserBookings(userId);
+
+        if (bookings.isEmpty()) {
+            // If no bookings, return trending venues
+            return getTrendingVenues(10);
+        }
+
+        // Analyze user preferences from booking history
+        String preferredCategory = getPreferredCategory(bookings);
+        String preferredCity = getPreferredCity(bookings);
+        int avgGuestCount = getAverageGuestCount(bookings);
+
+        // Query venues matching preferences
+        String query = "SELECT * FROM " + TABLE_VENUES +
+                " WHERE " + COLUMN_CATEGORY + " LIKE ?" +
+                " AND " + COLUMN_CITY + " LIKE ?" +
+                " AND " + COLUMN_CAPACITY + " >= ?" +
+                " ORDER BY rating DESC" +
+                " LIMIT 10";
+
+        Cursor cursor = db.rawQuery(query, new String[]{
+                "%" + preferredCategory + "%",
+                "%" + preferredCity + "%",
+                String.valueOf(avgGuestCount)
+        });
+
+        if (cursor.moveToFirst()) {
+            do {
+                venues.add(cursorToVenue(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return venues;
+    }
+
+    private String getPreferredCategory(List<Booking> bookings) {
+        // Simple implementation - return most frequent category
+        Map<String, Integer> categoryCount = new HashMap<>();
+
+        for (Booking booking : bookings) {
+            // Get venue category from venueId
+            Venue venue = getVenue(booking.getVenueId());
+            if (venue != null) {
+                String category = venue.getCategory();
+                categoryCount.put(category, categoryCount.getOrDefault(category, 0) + 1);
+            }
+        }
+
+        return categoryCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("banquet_hall");
+    }
+
+    private String getPreferredCity(List<Booking> bookings) {
+        // Similar implementation for city
+        return "Mumbai"; // Default
+    }
+
+    private int getAverageGuestCount(List<Booking> bookings) {
+        if (bookings.isEmpty()) return 100;
+
+        int total = 0;
+        for (Booking booking : bookings) {
+            total += booking.getGuestCount();
+        }
+
+        return total / bookings.size();
+    }
 }

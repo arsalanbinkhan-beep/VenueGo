@@ -3,7 +3,6 @@ package com.arsalankhan.venuego;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,7 +31,7 @@ public class DataIngestionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_data_ingestion);
 
-        osmDataService = new OSMDataService();
+        osmDataService = new OSMDataService(this);
 
         initializeViews();
         setupClickListeners();
@@ -59,7 +58,7 @@ public class DataIngestionActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        osmDataService.fetchAndStoreMaharashtraVenues(new OSMDataService.OSMDataCallback() {
+        osmDataService.fetchAndStoreMaharashtraVenues(new OSMDataService.SimpleOSMDataCallback() {
             @Override
             public void onSuccess(int venuesAdded) {
                 runOnUiThread(() -> {

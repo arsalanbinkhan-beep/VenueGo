@@ -1,14 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.VenueGo" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    <!-- Base Application Theme -->
+    <style name="Theme.VenueGo" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+        <!-- Primary Brand Colors -->
+        <item name="colorPrimary">@color/vibrant_purple</item>
+        <item name="colorPrimaryVariant">@color/light_purple</item>
+        <item name="colorOnPrimary">@color/text_primary</item>
+
+        <!-- Secondary Brand Colors -->
+        <item name="colorSecondary">@color/blue_info</item>
+        <item name="colorSecondaryVariant">@color/green_success</item>
+        <item name="colorOnSecondary">@color/text_primary</item>
+
+        <!-- System UI -->
+        <item name="android:statusBarColor" tools:targetApi="l">
+            ?attr/colorPrimaryVariant
+        </item>
+
+        <!-- Window / Text -->
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+
+        <!-- Material Widgets -->
+        <item name="materialButtonStyle">@style/Widget.VenueGo.Button</item>
+        <item name="textInputStyle">@style/Widget.VenueGo.TextInputLayout</item>
+        <item name="chipStyle">@style/Widget.VenueGo.Chip</item>
+        <item name="cardViewStyle">@style/Widget.VenueGo.CardView</item>
     </style>
 
-    <style name="Theme.VenueGo" parent="Base.Theme.VenueGo" />
-    <style name="RatingBar" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorControlNormal">@color/light_gray_text</item>
-        <item name="colorControlActivated">@color/yellow_star</item>
+    <!-- ===================== -->
+    <!-- Button Styles -->
+    <!-- ===================== -->
+    <style name="Widget.VenueGo.Button"
+        parent="Widget.MaterialComponents.Button">
+
+        <item name="cornerRadius">@dimen/button_corner_radius</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAppearance">
+            @style/TextAppearance.VenueGo.Button
+        </item>
     </style>
+
+    <style name="Widget.VenueGo.Button.Outlined"
+        parent="Widget.MaterialComponents.Button.OutlinedButton">
+
+        <item name="cornerRadius">@dimen/button_corner_radius</item>
+        <item name="android:padding">16dp</item>
+        <item name="strokeColor">@color/border_light</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- TextInput Styles -->
+    <!-- ===================== -->
+    <style name="Widget.VenueGo.TextInputLayout"
+        parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <item name="boxCornerRadiusTopStart">@dimen/input_corner_radius</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/input_corner_radius</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/input_corner_radius</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/input_corner_radius</item>
+
+        <item name="boxStrokeColor">@color/input_border</item>
+        <item name="hintTextColor">@color/text_hint</item>
+        <item name="boxBackgroundColor">@color/input_background</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- Chip Styles -->
+    <!-- ===================== -->
+    <style name="Widget.VenueGo.Chip"
+        parent="Widget.MaterialComponents.Chip.Choice">
+
+        <item name="chipSurfaceColor">@color/chip_unselected</item>
+        <item name="chipBackgroundColor">@color/chip_unselected</item>
+        <item name="chipStrokeColor">@color/border_light</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipCornerRadius">20dp</item>
+    </style>
+
+    <style name="Widget.VenueGo.Chip.Selected"
+        parent="Widget.VenueGo.Chip">
+
+        <item name="chipSurfaceColor">@color/chip_selected</item>
+        <item name="chipBackgroundColor">@color/chip_selected</item>
+        <item name="chipStrokeColor">@color/chip_selected</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- CardView Styles -->
+    <!-- ===================== -->
+    <style name="Widget.VenueGo.CardView"
+        parent="Widget.MaterialComponents.CardView">
+
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="cardElevation">@dimen/card_elevation</item>
+        <item name="cardBackgroundColor">@color/background_card</item>
+        <item name="contentPadding">16dp</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- Dialog Theme -->
+    <!-- ===================== -->
+    <style name="Theme.VenueGo.Dialog"
+        parent="Theme.MaterialComponents.Dialog">
+
+        <item name="android:windowBackground">
+            @drawable/dialog_background
+        </item>
+        <item name="android:windowMinWidthMajor">90%</item>
+        <item name="android:windowMinWidthMinor">90%</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- Bottom Sheet Theme -->
+    <!-- ===================== -->
+    <style name="Theme.VenueGo.BottomSheet"
+        parent="Theme.MaterialComponents.BottomSheetDialog">
+
+        <item name="android:windowBackground">
+            @android:color/transparent
+        </item>
+        <item name="bottomSheetStyle">
+            @style/Widget.VenueGo.BottomSheet
+        </item>
+    </style>
+
+    <style name="Widget.VenueGo.BottomSheet"
+        parent="Widget.MaterialComponents.BottomSheet.Modal">
+
+        <item name="backgroundTint">@color/background_card</item>
+        <item name="shapeAppearance">
+            @style/ShapeAppearance.VenueGo.BottomSheet
+        </item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- Shape Appearances -->
+    <!-- ===================== -->
+    <style name="ShapeAppearance.VenueGo.SmallComponent"
+        parent="ShapeAppearance.MaterialComponents.SmallComponent">
+
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.VenueGo.MediumComponent"
+        parent="ShapeAppearance.MaterialComponents.MediumComponent">
+
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.VenueGo.LargeComponent"
+        parent="ShapeAppearance.MaterialComponents.LargeComponent">
+
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearance.VenueGo.BottomSheet"
+        parent="ShapeAppearance.MaterialComponents.LargeComponent">
+
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- Toolbar -->
+    <!-- ===================== -->
+    <style name="Widget.VenueGo.Toolbar"
+        parent="Widget.MaterialComponents.Toolbar">
+
+        <item name="titleTextAppearance">
+            @style/TextAppearance.VenueGo.Toolbar.Title
+        </item>
+        <item name="subtitleTextAppearance">
+            @style/TextAppearance.VenueGo.Toolbar.Subtitle
+        </item>
+        <item name="android:background">@color/background_dark</item>
+        <item name="elevation">0dp</item>
+    </style>
+
+    <!-- ===================== -->
+    <!-- Text Appearances -->
+    <!-- ===================== -->
+    <style name="TextAppearance.VenueGo.Headline"
+        parent="TextAppearance.MaterialComponents.Headline5">
+
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Title"
+        parent="TextAppearance.MaterialComponents.Headline6">
+
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Subtitle"
+        parent="TextAppearance.MaterialComponents.Subtitle1">
+
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Body"
+        parent="TextAppearance.MaterialComponents.Body1">
+
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Caption"
+        parent="TextAppearance.MaterialComponents.Caption">
+
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Button"
+        parent="TextAppearance.MaterialComponents.Button">
+
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Toolbar.Title"
+        parent="TextAppearance.MaterialComponents.Headline6">
+
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.VenueGo.Toolbar.Subtitle"
+        parent="TextAppearance.MaterialComponents.Subtitle2">
+
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="RatingBar" parent="Widget.AppCompat.RatingBar">
+        <item name="colorControlNormal">#FFCC00</item> <item name="colorControlActivated">#FFD700</item> </style>
 
 </resources>

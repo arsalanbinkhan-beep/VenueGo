@@ -12,7 +12,7 @@ public class DataSyncReceiver extends BroadcastReceiver {
         Log.d("DataSyncReceiver", "Data sync alarm triggered");
 
         // Start data sync service
-        DataSyncService dataSyncService = new DataSyncService(context);
+        DataSyncService dataSyncService = new DataSyncService();
         dataSyncService.performIncrementalSync();
 
         // You can also start a foreground service here for longer operations
