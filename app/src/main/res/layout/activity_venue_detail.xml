@@ -418,15 +418,15 @@
             <Button
                 android:id="@+id/btn_direction"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Get Directions"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
                 android:backgroundTint="@color/vibrant_purple"
                 android:drawableStart="@drawable/ic_directions"
                 android:drawablePadding="8dp"
-                app:cornerRadius="8dp"/>
+                android:text="Get Directions"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:cornerRadius="8dp" />
 
         </LinearLayout>
 
@@ -442,30 +442,30 @@
             <Button
                 android:id="@+id/btn_check_availability"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
+                android:layout_height="77dp"
                 android:layout_marginEnd="8dp"
-                android:text="Check Availability"
-                android:textSize="16sp"
-                android:textColor="@android:color/white"
+                android:layout_weight="1"
                 android:backgroundTint="@color/purple_200"
                 android:drawableStart="@drawable/ic_calendar_check"
                 android:drawablePadding="8dp"
-                app:cornerRadius="12dp"/>
+                android:text="Check Availability"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:cornerRadius="12dp" />
 
             <Button
                 android:id="@+id/btn_book_now"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
+                android:layout_height="77dp"
                 android:layout_marginStart="8dp"
-                android:text="Book Now"
-                android:textSize="16sp"
-                android:textColor="@android:color/white"
+                android:layout_weight="1"
                 android:backgroundTint="@color/vibrant_purple"
                 android:drawableStart="@drawable/ic_book_now"
                 android:drawablePadding="8dp"
-                app:cornerRadius="12dp"/>
+                android:text="Book Now"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:cornerRadius="12dp" />
 
         </LinearLayout>
 

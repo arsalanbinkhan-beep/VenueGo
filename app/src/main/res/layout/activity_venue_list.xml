@@ -100,20 +100,20 @@
         <Button
             android:id="@+id/btn_list_view"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="List"
             android:backgroundTint="@color/vibrant_purple"
-            android:textColor="@android:color/white"/>
+            android:text="List"
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/btn_map_view"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Map"
             android:backgroundTint="@color/light_gray_text"
-            android:textColor="@android:color/white"/>
+            android:text="Map"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 

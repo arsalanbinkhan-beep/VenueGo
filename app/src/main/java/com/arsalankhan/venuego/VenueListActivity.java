@@ -1,16 +1,13 @@
-// Enhanced VenueListActivity.java with complete implementation
 package com.arsalankhan.venuego;
 
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -40,10 +37,11 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
     private GoogleMap googleMap;
     private List<Venue> venues = new ArrayList<>();
     private VenueAdapter venueAdapter;
-    private Event currentEvent;
-    private Map<Marker, Venue> markerVenueMap = new HashMap<>();
     private DatabaseHelper databaseHelper;
+    private Map<Marker, Venue> markerVenueMap = new HashMap<>();
     private boolean isMapReady = false;
+    private String currentView = "list"; // "list" or "map"
+    private Location userLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,12 +59,10 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
             return;
         }
 
-        // Get event from intent
-        currentEvent = (Event) getIntent().getSerializableExtra("event");
-
         setupUI();
         setupMap();
         loadVenues();
+        getUserLocation();
     }
 
     private void setupUI() {
@@ -74,13 +70,16 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
         binding.btnBack.setOnClickListener(v -> onBackPressed());
 
         // Setup filter button
-        binding.btnFilter.setOnClickListener(v -> showFilterDialog());
+        binding.btnFilter.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SearchFilterActivity.class);
+            startActivity(intent);
+        });
 
         // Setup view toggle
         binding.btnListView.setOnClickListener(v -> switchView("list"));
         binding.btnMapView.setOnClickListener(v -> switchView("map"));
 
-        // Setup sort options
+        // Setup sort button
         binding.btnSort.setOnClickListener(v -> showSortDialog());
 
         // Default to list view
@@ -91,7 +90,7 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
         binding.recyclerViewVenues.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerViewVenues.setAdapter(venueAdapter);
 
-        // Setup empty state
+        // Setup empty state button
         binding.btnExplore.setOnClickListener(v -> {
             startActivity(new Intent(this, CreateEventActivity.class));
             finish();
@@ -100,16 +99,9 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
 
     private void setupMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+                .findFragmentById(R.id.map_container);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
-        } else {
-            // Try alternative fragment ID
-            mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.map_container);
-            if (mapFragment != null) {
-                mapFragment.getMapAsync(this);
-            }
         }
     }
 
@@ -122,20 +114,36 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         googleMap.getUiSettings().setCompassEnabled(true);
 
-        // Set map click listener
         googleMap.setOnMarkerClickListener(marker -> {
             Venue venue = markerVenueMap.get(marker);
             if (venue != null) {
-                showVenueInfoWindow(venue, marker);
+                showVenueDetails(venue);
                 return true;
             }
             return false;
         });
 
-        // Add venue markers if venues are already loaded
         if (!venues.isEmpty()) {
             addVenueMarkers();
             zoomToVenues();
+        }
+    }
+
+    private void getUserLocation() {
+        try {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        userLocation = location;
+                        if (googleMap != null && location != null) {
+                            LatLng userLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                            googleMap.addMarker(new MarkerOptions()
+                                    .position(userLatLng)
+                                    .title("You are here")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                        }
+                    });
+        } catch (SecurityException e) {
+            Log.e("VenueListActivity", "Location permission error", e);
         }
     }
 
@@ -149,140 +157,88 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
             return;
         }
 
-        // Check if event was passed (AI recommendations)
-        if (currentEvent != null) {
-            loadAIRecommendedVenues();
+        // Check type from intent
+        String type = getIntent().getStringExtra("type");
+        if (type != null) {
+            if (type.equals("nearby")) {
+                loadNearbyVenues();
+            } else if (type.equals("trending")) {
+                loadTrendingVenues();
+            }
             return;
         }
 
-        // Check if filters were passed
-        Map<String, Object> filters = (Map<String, Object>) getIntent().getSerializableExtra("filters");
-        if (filters != null) {
-            loadVenuesWithFilters(filters);
-            return;
-        }
-
-        // Default: load venues near user location
-        loadVenuesNearUser();
+        // Default: load from local DB
+        loadFromLocalDB();
     }
 
-    private void loadAIRecommendedVenues() {
+    private void loadNearbyVenues() {
         binding.progressBar.setVisibility(View.VISIBLE);
 
-        AIRecommendationService aiService = new AIRecommendationService(this);
-        aiService.recommendVenues(currentEvent, new AIRecommendationService.RecommendationCallback() {
-            @Override
-            public void onSuccess(List<Venue> recommendedVenues) {
-                runOnUiThread(() -> {
-                    binding.progressBar.setVisibility(View.GONE);
-                    venues.clear();
-                    venues.addAll(recommendedVenues);
-                    updateUI();
-
-                    // Show AI recommendations badge
-                    binding.tvAIRecommendations.setVisibility(View.VISIBLE);
-                    binding.tvAIRecommendations.setText("AI Recommended (" + venues.size() + " venues)");
-                });
-            }
-
-            @Override
-            public void onFailure(String error) {
-                runOnUiThread(() -> {
-                    binding.progressBar.setVisibility(View.GONE);
-                    Toast.makeText(VenueListActivity.this,
-                            "AI recommendations failed: " + error, Toast.LENGTH_SHORT).show();
-                    loadVenuesNearUser(); // Fallback
-                });
-            }
-        });
-    }
-
-    private void loadVenuesNearUser() {
         try {
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(location -> {
                         if (location != null) {
-                            // Try local database first
-                            List<Venue> localVenues = databaseHelper.getVenuesNearby(
-                                    location.getLatitude(),
-                                    location.getLongitude(),
-                                    20.0
-                            );
+                            venueService.searchVenuesNearby(location.getLatitude(), location.getLongitude(),
+                                    20.0, new VenueService.VenueListCallback() {
+                                        @Override
+                                        public void onSuccess(List<Venue> venueList) {
+                                            binding.progressBar.setVisibility(View.GONE);
+                                            venues.clear();
+                                            venues.addAll(venueList);
+                                            updateUI();
+                                            cacheVenuesLocally(venueList);
+                                        }
 
-                            if (!localVenues.isEmpty()) {
-                                venues.clear();
-                                venues.addAll(localVenues);
-                                updateUI();
-                            } else {
-                                // Fallback to Firestore
-                                loadVenuesFromFirestore(location);
-                            }
+                                        @Override
+                                        public void onFailure(String error) {
+                                            binding.progressBar.setVisibility(View.GONE);
+                                            Toast.makeText(VenueListActivity.this,
+                                                    "Error: " + error, Toast.LENGTH_SHORT).show();
+                                            loadFromLocalDB();
+                                        }
+                                    });
                         } else {
-                            Toast.makeText(this, "Unable to get location", Toast.LENGTH_SHORT).show();
-                            loadDefaultVenues();
+                            binding.progressBar.setVisibility(View.GONE);
+                            loadFromLocalDB();
                         }
                     });
         } catch (SecurityException e) {
+            binding.progressBar.setVisibility(View.GONE);
             Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
-            loadDefaultVenues();
+            loadFromLocalDB();
         }
     }
 
-    private void loadVenuesFromFirestore(Location location) {
-        venueService.searchVenuesNearby(location.getLatitude(), location.getLongitude(),
-                20.0, new VenueService.VenueListCallback() {
-                    @Override
-                    public void onSuccess(List<Venue> venueList) {
-                        venues.clear();
-                        venues.addAll(venueList);
-                        updateUI();
-
-                        // Cache locally
-                        cacheVenuesLocally(venueList);
-                    }
-
-                    @Override
-                    public void onFailure(String error) {
-                        Toast.makeText(VenueListActivity.this,
-                                "Error loading venues: " + error, Toast.LENGTH_SHORT).show();
-                        showEmptyState();
-                    }
-                });
-    }
-
-    private void loadVenuesWithFilters(Map<String, Object> filters) {
+    private void loadTrendingVenues() {
         binding.progressBar.setVisibility(View.VISIBLE);
 
-        venueService.searchVenues(filters, new VenueService.VenueListCallback() {
+        venueService.getTrendingVenues(new VenueService.VenueListCallback() {
             @Override
             public void onSuccess(List<Venue> venueList) {
-                runOnUiThread(() -> {
-                    binding.progressBar.setVisibility(View.GONE);
-                    venues.clear();
-                    venues.addAll(venueList);
-                    updateUI();
-                });
+                binding.progressBar.setVisibility(View.GONE);
+                venues.clear();
+                venues.addAll(venueList);
+                updateUI();
             }
 
             @Override
             public void onFailure(String error) {
-                runOnUiThread(() -> {
-                    binding.progressBar.setVisibility(View.GONE);
-                    Toast.makeText(VenueListActivity.this,
-                            "Error loading venues: " + error, Toast.LENGTH_SHORT).show();
-                    showEmptyState();
-                });
+                binding.progressBar.setVisibility(View.GONE);
+                Toast.makeText(VenueListActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void loadDefaultVenues() {
-        // Load venues from Mumbai as default
-        Map<String, Object> filters = new HashMap<>();
-        filters.put("city", "Mumbai");
-        filters.put("limit", 20);
-
-        loadVenuesWithFilters(filters);
+    private void loadFromLocalDB() {
+        List<Venue> localVenues = databaseHelper.getAllVenues();
+        if (!localVenues.isEmpty()) {
+            venues.clear();
+            venues.addAll(localVenues);
+            updateUI();
+        } else {
+            showEmptyState();
+        }
     }
 
     private void updateUI() {
@@ -290,12 +246,9 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
             showEmptyState();
         } else {
             showVenuesList();
+            binding.tvVenueCount.setText(venues.size() + " venues found");
             venueAdapter.notifyDataSetChanged();
 
-            // Update venue count
-            binding.tvVenueCount.setText(venues.size() + " venues found");
-
-            // Update map if available
             if (isMapReady) {
                 addVenueMarkers();
                 zoomToVenues();
@@ -315,7 +268,7 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
             Marker marker = googleMap.addMarker(new MarkerOptions()
                     .position(position)
                     .title(venue.getName())
-                    .snippet("₹" + String.format("%.0f", venue.getPriceRange()))
+                    .snippet("₹" + String.format("%,.0f", venue.getPriceRange()))
                     .icon(getVenueIcon(venue.getCategory())));
 
             markerVenueMap.put(marker, venue);
@@ -323,34 +276,28 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private com.google.android.gms.maps.model.BitmapDescriptor getVenueIcon(String category) {
-        int iconRes;
-        switch (category) {
-            case "banquet_hall":
-                iconRes = R.drawable.ic_banquet;
-                break;
-            case "hotel":
-                iconRes = R.drawable.ic_hotel;
-                break;
-            case "restaurant":
-                iconRes = R.drawable.ic_restaurant;
-                break;
-            case "open_ground":
-                iconRes = R.drawable.ic_park;
-                break;
-            case "stadium":
-                iconRes = R.drawable.ic_stadium;
-                break;
-            case "auditorium":
-                iconRes = R.drawable.ic_auditorium;
-                break;
-            case "community_center":
-                iconRes = R.drawable.ic_community;
-                break;
-            default:
-                iconRes = R.drawable.ic_venue;
+        if (category == null) {
+            return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
         }
 
-        return com.google.android.gms.maps.model.BitmapDescriptorFactory.fromResource(iconRes);
+        switch (category.toLowerCase()) {
+            case "banquet_hall":
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+            case "hotel":
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+            case "restaurant":
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+            case "open_ground":
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+            case "stadium":
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+            case "auditorium":
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN);
+            case "community_center":
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+            default:
+                return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+        }
     }
 
     private void zoomToVenues() {
@@ -365,7 +312,6 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
             LatLngBounds bounds = builder.build();
             googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
         } catch (IllegalStateException e) {
-            // Fallback: zoom to first venue
             if (!venues.isEmpty()) {
                 Venue firstVenue = venues.get(0);
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
@@ -374,26 +320,25 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
         }
     }
 
-    private void showVenueInfoWindow(Venue venue, Marker marker) {
-        marker.showInfoWindow();
-        // Scroll to venue in list view
-        int position = venues.indexOf(venue);
-        if (position >= 0 && binding.recyclerViewVenues.getVisibility() == View.VISIBLE) {
-            binding.recyclerViewVenues.smoothScrollToPosition(position);
-        }
+    private void showVenueDetails(Venue venue) {
+        Intent intent = new Intent(this, VenueDetailActivity.class);
+        intent.putExtra("venueId", venue.getId());
+        startActivity(intent);
     }
 
     private void switchView(String viewType) {
+        currentView = viewType;
+
         if (viewType.equals("list")) {
             binding.recyclerViewVenues.setVisibility(View.VISIBLE);
             binding.mapContainer.setVisibility(View.GONE);
-            binding.btnListView.setSelected(true);
-            binding.btnMapView.setSelected(false);
+            binding.btnListView.setBackgroundTintList(getColorStateList(R.color.vibrant_purple));
+            binding.btnMapView.setBackgroundTintList(getColorStateList(R.color.light_gray_text));
         } else {
             binding.recyclerViewVenues.setVisibility(View.GONE);
             binding.mapContainer.setVisibility(View.VISIBLE);
-            binding.btnListView.setSelected(false);
-            binding.btnMapView.setSelected(true);
+            binding.btnListView.setBackgroundTintList(getColorStateList(R.color.light_gray_text));
+            binding.btnMapView.setBackgroundTintList(getColorStateList(R.color.vibrant_purple));
 
             if (isMapReady && !venues.isEmpty()) {
                 addVenueMarkers();
@@ -402,16 +347,11 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
         }
     }
 
-    private void showFilterDialog() {
-        Intent intent = new Intent(this, SearchFilterActivity.class);
-        startActivity(intent);
-    }
-
     private void showSortDialog() {
         String[] sortOptions = {"Rating (High to Low)", "Price (Low to High)",
-                "Price (High to Low)", "Capacity", "Distance"};
+                "Price (High to Low)", "Capacity (High to Low)", "Distance (Nearby)"};
 
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Sort By");
         builder.setItems(sortOptions, (dialog, which) -> {
             sortVenues(which);
@@ -430,25 +370,42 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
             case 2: // Price high to low
                 venues.sort((v1, v2) -> Double.compare(v2.getPriceRange(), v1.getPriceRange()));
                 break;
-            case 3: // Capacity
+            case 3: // Capacity high to low
                 venues.sort((v1, v2) -> Integer.compare(v2.getCapacity(), v1.getCapacity()));
+                break;
+            case 4: // Distance
+                if (userLocation != null) {
+                    venues.sort((v1, v2) -> {
+                        double dist1 = calculateDistance(userLocation.getLatitude(), userLocation.getLongitude(),
+                                v1.getLatitude(), v1.getLongitude());
+                        double dist2 = calculateDistance(userLocation.getLatitude(), userLocation.getLongitude(),
+                                v2.getLatitude(), v2.getLongitude());
+                        return Double.compare(dist1, dist2);
+                    });
+                }
                 break;
         }
 
         venueAdapter.notifyDataSetChanged();
+
+        if (currentView.equals("map") && isMapReady) {
+            addVenueMarkers();
+        }
+
         Toast.makeText(this, "Sorted", Toast.LENGTH_SHORT).show();
+    }
+
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        float[] results = new float[1];
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        return results[0] / 1000.0; // Convert to kilometers
     }
 
     private void showEmptyState() {
         binding.recyclerViewVenues.setVisibility(View.GONE);
         binding.mapContainer.setVisibility(View.GONE);
         binding.layoutEmptyState.setVisibility(View.VISIBLE);
-
-        if (currentEvent != null) {
-            binding.tvEmptyState.setText("No venues found for your event criteria");
-        } else {
-            binding.tvEmptyState.setText("No venues found");
-        }
+        binding.tvEmptyState.setText("No venues found");
     }
 
     private void showVenuesList() {
@@ -469,5 +426,11 @@ public class VenueListActivity extends AppCompatActivity implements OnMapReadyCa
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 }

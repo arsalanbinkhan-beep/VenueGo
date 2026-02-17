@@ -8,6 +8,7 @@ import android.os.Build;
 import com.google.firebase.FirebaseApp;
 
 public class VenueGo extends Application {
+
     public static final String CHANNEL_ID = "venuego_notifications";
     public static final String CHANNEL_SYNC_ID = "venuego_sync";
 
@@ -21,13 +22,14 @@ public class VenueGo extends Application {
         // Create notification channels
         createNotificationChannels();
 
-        // Initialize database and services
+        // Initialize services
         initializeServices();
     }
 
     private void createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Main notifications channel
+
+            // Main notification channel
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "VenueGo Notifications",
@@ -35,7 +37,7 @@ public class VenueGo extends Application {
             );
             channel.setDescription("Notifications for bookings, reminders, and updates");
 
-            // Sync notifications channel
+            // Sync notification channel
             NotificationChannel syncChannel = new NotificationChannel(
                     CHANNEL_SYNC_ID,
                     "VenueGo Sync",
@@ -44,8 +46,10 @@ public class VenueGo extends Application {
             syncChannel.setDescription("Background sync notifications");
 
             NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel);
-            manager.createNotificationChannel(syncChannel);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+                manager.createNotificationChannel(syncChannel);
+            }
         }
     }
 
@@ -57,8 +61,7 @@ public class VenueGo extends Application {
         databaseHelper.clearOldWeatherCache();
         databaseHelper.clearOldSearchHistory(30);
 
-        // Start background sync service
-        DataSyncService dataSyncService = new DataSyncService();
-        dataSyncService.scheduleDailySync();
+        // Correct way to schedule sync
+        DataSyncService.scheduleDailySync(this);
     }
 }

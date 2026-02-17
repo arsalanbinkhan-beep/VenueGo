@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.application") version "8.13.2" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.22" apply false
+    id("com.android.application") version "9.0.1" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.10" apply false
 
     // ADD THIS LINE for Crashlytics
     id("com.google.firebase.crashlytics") version "2.9.9" apply false

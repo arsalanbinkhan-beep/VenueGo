@@ -4,19 +4,19 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.arsalankhan.venuego.databinding.ActivityBookingBinding;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,16 +26,20 @@ import java.util.Map;
 public class BookingActivity extends AppCompatActivity {
     private ActivityBookingBinding binding;
     private AuthService authService;
+    private DatabaseHelper databaseHelper;
     private Venue venue;
     private Calendar eventDateTime = Calendar.getInstance();
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
     private SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+    private SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private double totalPrice = 0;
+    private double basePrice = 0;
 
     // Event types
     private String[] eventTypes = {
             "Wedding", "Birthday", "Corporate", "Conference",
-            "Seminar", "Party", "Reception", "Get Together"
+            "Seminar", "Party", "Reception", "Get Together",
+            "Sports Event", "Concert", "Exhibition"
     };
 
     @Override
@@ -45,6 +49,8 @@ public class BookingActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         authService = new AuthService();
+        databaseHelper = new DatabaseHelper(this);
+
         venue = (Venue) getIntent().getSerializableExtra("venue");
 
         if (!authService.isUserLoggedIn()) {
@@ -53,6 +59,7 @@ public class BookingActivity extends AppCompatActivity {
         }
 
         if (venue == null) {
+            Toast.makeText(this, "Venue information missing", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -67,9 +74,11 @@ public class BookingActivity extends AppCompatActivity {
 
         // Display venue info
         binding.tvVenueName.setText(venue.getName());
-        binding.tvVenueAddress.setText(venue.getAddress());
+        binding.tvVenueAddress.setText(venue.getFullAddress());
         binding.tvVenueCapacity.setText("Capacity: " + venue.getCapacity() + " guests");
-        binding.tvBasePrice.setText("Base Price: ₹" + String.format("%.0f", venue.getPriceRange()));
+        basePrice = venue.getPriceRange();
+        binding.tvBasePrice.setText("Base Price: " + formatPrice(basePrice));
+        binding.tvBasePriceDisplay.setText(formatPrice(basePrice));
 
         // Setup event type spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
@@ -89,9 +98,6 @@ public class BookingActivity extends AppCompatActivity {
         binding.tvGuestCount.setText("50");
         eventDateTime.add(Calendar.DAY_OF_YEAR, 7); // Default to 1 week from now
         updateDateTimeDisplay();
-
-        // Setup amenities toggle
-        setupAmenitiesToggle();
 
         // Setup booking button
         binding.btnConfirmBooking.setOnClickListener(v -> confirmBooking());
@@ -140,37 +146,42 @@ public class BookingActivity extends AppCompatActivity {
         calculatePrice();
     }
 
-    private void setupAmenitiesToggle() {
-        // Setup toggle buttons for additional amenities
-        // This would be populated based on venue's available amenities
-    }
-
     private void calculatePrice() {
         int guestCount = Integer.parseInt(binding.tvGuestCount.getText().toString());
 
-        // Base price calculation
-        totalPrice = venue.getPriceRange();
+        // Start with base price
+        totalPrice = basePrice;
 
-        // Adjust for guest count (if different from venue's base capacity)
+        // Guest count adjustment
+        double guestAdjustment = 0;
         if (guestCount > 100) {
-            double guestMultiplier = guestCount / 100.0;
-            totalPrice *= guestMultiplier;
+            double multiplier = guestCount / 100.0;
+            guestAdjustment = basePrice * (multiplier - 1);
         }
+        totalPrice += guestAdjustment;
+        binding.tvGuestAdjustment.setText("+ " + formatPrice(guestAdjustment));
 
         // Weekend/holiday surcharge
         int dayOfWeek = eventDateTime.get(Calendar.DAY_OF_WEEK);
+        double weekendSurcharge = 0;
         if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
-            totalPrice *= 1.2; // 20% weekend surcharge
+            weekendSurcharge = basePrice * 0.2; // 20% weekend surcharge
+            totalPrice += weekendSurcharge;
         }
+        binding.tvWeekendSurcharge.setText("+ " + formatPrice(weekendSurcharge));
 
         // Peak season surcharge (Dec-Jan)
         int month = eventDateTime.get(Calendar.MONTH);
         if (month == Calendar.DECEMBER || month == Calendar.JANUARY) {
-            totalPrice *= 1.3; // 30% peak season surcharge
+            totalPrice += basePrice * 0.3; // 30% peak season surcharge
         }
 
         // Display calculated price
-        binding.tvTotalPrice.setText("₹" + String.format("%.0f", totalPrice));
+        binding.tvTotalPrice.setText(formatPrice(totalPrice));
+    }
+
+    private String formatPrice(double price) {
+        return "₹" + String.format("%,.0f", price);
     }
 
     private void confirmBooking() {
@@ -195,10 +206,13 @@ public class BookingActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Booking")
                 .setMessage("Confirm booking for " + venue.getName() + "?\n\n" +
+                        "Event: " + binding.spinnerEventType.getSelectedItem().toString() + "\n" +
                         "Date: " + binding.etEventDate.getText().toString() + "\n" +
                         "Time: " + binding.etEventTime.getText().toString() + "\n" +
                         "Guests: " + guestCount + "\n" +
-                        "Total: ₹" + String.format("%.0f", totalPrice))
+                        "Total: " + formatPrice(totalPrice) + "\n\n" +
+                        "Note: ₹" + String.format("%,.0f", totalPrice * 0.3) +
+                        " advance payment required to confirm.")
                 .setPositiveButton("Confirm", (dialog, which) -> createBooking())
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -211,58 +225,74 @@ public class BookingActivity extends AppCompatActivity {
         booking.setUserId(authService.getCurrentUser().getUid());
         booking.setVenueId(venue.getId());
         booking.setVenueName(venue.getName());
+        booking.setVenueAddress(venue.getAddress());
         booking.setEventDate(eventDateTime.getTime());
         booking.setEventType(binding.spinnerEventType.getSelectedItem().toString());
         booking.setGuestCount(Integer.parseInt(binding.tvGuestCount.getText().toString()));
         booking.setTotalPrice(totalPrice);
+        booking.setTotalAmount(totalPrice);
         booking.setBookingDate(new Date());
+        booking.setBookingStatus("PENDING");
+        booking.setPaymentStatus("UNPAID");
         booking.setSpecialRequirements(binding.etSpecialRequirements.getText().toString());
 
-        // Save booking to Firestore
+        // Save to Firestore
         FirebaseFirestore.getInstance().collection("bookings")
                 .add(booking)
                 .addOnSuccessListener(documentReference -> {
+                    booking.setId(documentReference.getId());
+
+                    // Also save locally
+                    databaseHelper.addBooking(
+                            booking.getVenueId(),
+                            booking.getUserId(),
+                            booking.getEventName() != null ? booking.getEventName() : venue.getName() + " Event",
+                            dbDateFormat.format(booking.getEventDate()),
+                            booking.getEventTime(),
+                            booking.getGuestCount(),
+                            booking.getTotalPrice()
+                    );
+
                     binding.progressBar.setVisibility(View.GONE);
+
+                    // Show success dialog
+                    new AlertDialog.Builder(this)
+                            .setTitle("Booking Request Submitted!")
+                            .setMessage("Your booking request has been sent to the venue.\n\n" +
+                                    "Booking ID: " + documentReference.getId() + "\n\n" +
+                                    "You will receive a confirmation within 24 hours.")
+                            .setPositiveButton("View My Bookings", (dialog, which) -> {
+                                Intent intent = new Intent(this, BookingsActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                                finish();
+                            })
+                            .setNegativeButton("Continue Browsing", (dialog, which) -> {
+                                finish();
+                            })
+                            .setCancelable(false)
+                            .show();
 
                     // Update venue availability
                     updateVenueAvailability();
-
-                    // Send booking confirmation
-                    sendBookingConfirmation(documentReference.getId());
-
-                    Toast.makeText(this, "Booking request submitted!", Toast.LENGTH_SHORT).show();
-
-                    // Navigate to booking details or bookings list
-                    Intent intent = new Intent(this, BookingsActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
-                    finish();
                 })
                 .addOnFailureListener(e -> {
                     binding.progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Booking failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Booking failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 
     private void updateVenueAvailability() {
-        // Mark the date as booked in venue's availability
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String bookedDate = dateFormat.format(eventDateTime.getTime());
+        String bookedDate = dbDateFormat.format(eventDateTime.getTime());
 
         Map<String, Object> updateData = new HashMap<>();
         updateData.put("availability." + bookedDate, false);
 
         FirebaseFirestore.getInstance().collection("venues")
                 .document(venue.getId())
-                .update(updateData);
-    }
-
-    private void sendBookingConfirmation(String bookingId) {
-        // Send email/notification confirmation
-        // This would integrate with a notification service or email service
-
-        // For now, just log
-        android.util.Log.d("Booking", "Booking created with ID: " + bookingId);
+                .update(updateData)
+                .addOnFailureListener(e ->
+                        Log.e("BookingActivity", "Failed to update availability: " + e.getMessage()));
     }
 
     private void redirectToLogin() {
@@ -270,5 +300,15 @@ public class BookingActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cancel Booking?")
+                .setMessage("Are you sure you want to cancel the booking process?")
+                .setPositiveButton("Yes", (dialog, which) -> super.onBackPressed())
+                .setNegativeButton("No", null)
+                .show();
     }
 }

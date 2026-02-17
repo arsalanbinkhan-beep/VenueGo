@@ -335,49 +335,38 @@
                 android:id="@+id/ll_guests_budget"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_marginTop="16dp"
+                android:orientation="horizontal"
                 app:layout_constraintTop_toBottomOf="@id/seekBar_budget">
 
                 <TextView
                     android:id="@+id/tv_guests_count"
                     android:layout_width="0dp"
-                    android:layout_height="56dp"
+                    android:layout_height="50dp"
                     android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
                     android:background="@drawable/rounded_edittext_background"
-                    android:drawableStart="@drawable/ic_guests"
-                    android:drawablePadding="12dp"
-                    android:gravity="center_vertical"
-                    android:text="Guests: 100"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:layout_marginEnd="8dp" />
+                    android:gravity="center"
+                    android:text="100 Guests"
+                    android:textColor="@android:color/white" />
 
                 <TextView
                     android:id="@+id/tv_max_budget"
                     android:layout_width="0dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_height="50dp"
                     android:layout_weight="1"
+                    android:layout_marginStart="8dp"
                     android:background="@drawable/rounded_edittext_background"
-                    android:drawableStart="@drawable/ic_budget"
-                    android:drawablePadding="12dp"
-                    android:gravity="center_vertical"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:text="Max Budget: ₹50,000"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp" />
-
+                    android:gravity="center"
+                    android:text="Max: ₹50,000"
+                    android:textColor="@android:color/white" />
             </LinearLayout>
 
             <!-- Show Venues Button -->
             <Button
                 android:id="@+id/btn_show_venues"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="65dp"
                 android:text="Show Venues"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"

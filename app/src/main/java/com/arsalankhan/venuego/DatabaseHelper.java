@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "venuego.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
     private Gson gson = new Gson();
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     private SimpleDateFormat eventDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -57,6 +57,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_EMAIL = "email";
     private static final String COLUMN_WEBSITE = "website";
     private static final String COLUMN_UPDATED_AT = "updated_at";
+    private static final String COLUMN_VIEW_COUNT = "view_count"; // Added constant
 
     // User columns
     private static final String COLUMN_USER_ID = "user_id";
@@ -81,7 +82,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_WEATHER_DATA = "weather_data";
     private static final String COLUMN_EXPIRES_AT = "expires_at";
 
-    // Table creation statements
+    // Fixed CREATE TABLE statement with view_count column
     private static final String CREATE_TABLE_VENUES =
             "CREATE TABLE " + TABLE_VENUES + "("
                     + COLUMN_ID + " TEXT PRIMARY KEY,"
@@ -102,7 +103,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + COLUMN_CONTACT + " TEXT,"
                     + COLUMN_EMAIL + " TEXT,"
                     + COLUMN_WEBSITE + " TEXT,"
-                    + COLUMN_UPDATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP"
+                    + COLUMN_UPDATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP,"
+                    + COLUMN_VIEW_COUNT + " INTEGER DEFAULT 0"
                     + ")";
 
     private static final String CREATE_TABLE_BOOKINGS =
@@ -117,8 +119,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + "total_amount REAL,"
                     + "booking_status TEXT DEFAULT 'pending',"
                     + "payment_status TEXT DEFAULT 'pending',"
-                    + "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                    + "FOREIGN KEY(" + COLUMN_VENUE_ID + ") REFERENCES " + TABLE_VENUES + "(" + COLUMN_ID + ")"
+                    + "created_at DATETIME DEFAULT CURRENT_TIMESTAMP"
                     + ")";
 
     private static final String CREATE_TABLE_FAVORITES =
@@ -127,8 +128,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + COLUMN_VENUE_ID + " TEXT,"
                     + COLUMN_USER_ID + " TEXT,"
                     + "added_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                    + "UNIQUE(" + COLUMN_VENUE_ID + ", " + COLUMN_USER_ID + "),"
-                    + "FOREIGN KEY(" + COLUMN_VENUE_ID + ") REFERENCES " + TABLE_VENUES + "(" + COLUMN_ID + ")"
+                    + "UNIQUE(" + COLUMN_VENUE_ID + ", " + COLUMN_USER_ID + ")"
                     + ")";
 
     private static final String CREATE_TABLE_AI_RECOMMENDATIONS =
@@ -211,7 +211,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Drop all tables
+        Log.d("DatabaseHelper", "Upgrading database from version " + oldVersion + " to " + newVersion);
+
+        // Handle upgrades sequentially
+        if (oldVersion < 6) {
+            upgradeToVersion6(db);
+        }
+    }
+
+    private void upgradeToVersion6(SQLiteDatabase db) {
+        try {
+            // Check if column exists
+            if (!isColumnExists(db, TABLE_VENUES, COLUMN_VIEW_COUNT)) {
+                db.execSQL("ALTER TABLE " + TABLE_VENUES + " ADD COLUMN " + COLUMN_VIEW_COUNT + " INTEGER DEFAULT 0");
+                Log.d("DatabaseHelper", "Added " + COLUMN_VIEW_COUNT + " column to venues table");
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error upgrading to version 6: " + e.getMessage());
+        }
+    }
+
+    private boolean isColumnExists(SQLiteDatabase db, String tableName, String columnName) {
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery("PRAGMA table_info(" + tableName + ")", null);
+            if (cursor != null) {
+                int nameIndex = cursor.getColumnIndex("name");
+                if (nameIndex >= 0) {
+                    while (cursor.moveToNext()) {
+                        String name = cursor.getString(nameIndex);
+                        if (columnName.equals(name)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error checking column existence: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Handle downgrade by recreating database
+        dropAllTables(db);
+        onCreate(db);
+    }
+
+    private void dropAllTables(SQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_VENUES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOOKINGS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_FAVORITES);
@@ -227,15 +279,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP INDEX IF EXISTS idx_venues_rating");
         db.execSQL("DROP INDEX IF EXISTS idx_venues_type");
         db.execSQL("DROP INDEX IF EXISTS idx_venues_capacity");
-
-        // Recreate database
-        onCreate(db);
-        Log.d("DatabaseHelper", "Database upgraded from version " + oldVersion + " to " + newVersion);
-    }
-
-    @Override
-    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        onUpgrade(db, oldVersion, newVersion);
     }
 
     // ==================== VENUE METHODS ====================
@@ -267,8 +310,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         values.put(COLUMN_DESCRIPTION, venue.getDescription());
-        values.put(COLUMN_CONTACT, venue.getContactPhone()); // Fixed: getContactPhone()
-        values.put(COLUMN_EMAIL, venue.getContactEmail()); // Fixed: getContactEmail()
+        values.put(COLUMN_CONTACT, venue.getContactPhone());
+        values.put(COLUMN_EMAIL, venue.getContactEmail());
         values.put(COLUMN_WEBSITE, venue.getWebsite());
         values.put(COLUMN_UPDATED_AT, dateFormat.format(new Date()));
 
@@ -315,6 +358,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return venues;
     }
 
+    // Fixed getVenuesNearby method - replaced HAVING with WHERE
     public List<Venue> getVenuesNearby(double lat, double lon, double radiusKm) {
         List<Venue> venues = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -324,11 +368,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "cos(radians(" + COLUMN_LONGITUDE + ") - radians(?)) + "
                 + "sin(radians(?)) * sin(radians(" + COLUMN_LATITUDE + ")))) AS distance "
                 + "FROM " + TABLE_VENUES + " "
-                + "WHERE distance <= ? "
+                + "WHERE (" + COLUMN_LATITUDE + " IS NOT NULL AND " + COLUMN_LONGITUDE + " IS NOT NULL) "
+                + "AND (6371 * acos(cos(radians(?)) * cos(radians(" + COLUMN_LATITUDE + ")) * "
+                + "cos(radians(" + COLUMN_LONGITUDE + ") - radians(?)) + "
+                + "sin(radians(?)) * sin(radians(" + COLUMN_LATITUDE + ")))) <= ? "
                 + "ORDER BY distance "
                 + "LIMIT 50";
 
         String[] args = {
+                String.valueOf(lat),
+                String.valueOf(lon),
+                String.valueOf(lat),
                 String.valueOf(lat),
                 String.valueOf(lon),
                 String.valueOf(lat),
@@ -351,8 +401,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public List<Venue> searchVenuesWithFilters(String city, String category, String type,
                                                int minCapacity, double maxPrice) {
-        SQLiteDatabase db = this.getReadableDatabase();
         List<Venue> venues = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
 
         StringBuilder queryBuilder = new StringBuilder("SELECT * FROM " + TABLE_VENUES + " WHERE 1=1");
         List<String> args = new ArrayList<>();
@@ -394,66 +444,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return venues;
     }
 
-    public List<Venue> advancedSearch(Map<String, Object> filters) {
-        List<Venue> venues = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        StringBuilder queryBuilder = new StringBuilder("SELECT * FROM " + TABLE_VENUES + " WHERE 1=1");
-        List<String> selectionArgs = new ArrayList<>();
-
-        // Apply filters
-        if (filters.containsKey("city")) {
-            queryBuilder.append(" AND ").append(COLUMN_CITY).append(" LIKE ?");
-            selectionArgs.add("%" + filters.get("city") + "%");
-        }
-
-        if (filters.containsKey("category")) {
-            queryBuilder.append(" AND ").append(COLUMN_CATEGORY).append(" = ?");
-            selectionArgs.add(filters.get("category").toString());
-        }
-
-        if (filters.containsKey("type")) {
-            queryBuilder.append(" AND ").append(COLUMN_TYPE).append(" = ?");
-            selectionArgs.add(filters.get("type").toString());
-        }
-
-        if (filters.containsKey("minCapacity")) {
-            queryBuilder.append(" AND ").append(COLUMN_CAPACITY).append(" >= ?");
-            selectionArgs.add(filters.get("minCapacity").toString());
-        }
-
-        if (filters.containsKey("maxPrice")) {
-            queryBuilder.append(" AND ").append(COLUMN_PRICE_RANGE).append(" <= ?");
-            selectionArgs.add(filters.get("maxPrice").toString());
-        }
-
-        if (filters.containsKey("minRating")) {
-            queryBuilder.append(" AND ").append(COLUMN_RATING).append(" >= ?");
-            selectionArgs.add(filters.get("minRating").toString());
-        }
-
-        // Sort order
-        String sortBy = filters.containsKey("sortBy") ? filters.get("sortBy").toString() : COLUMN_RATING;
-        String sortOrder = filters.containsKey("sortOrder") ? filters.get("sortOrder").toString() : "DESC";
-
-        queryBuilder.append(" ORDER BY ").append(sortBy).append(" ").append(sortOrder);
-        queryBuilder.append(" LIMIT 100");
-
-        Cursor cursor = db.rawQuery(queryBuilder.toString(),
-                selectionArgs.toArray(new String[0]));
-
-        if (cursor.moveToFirst()) {
-            do {
-                Venue venue = cursorToVenue(cursor);
-                venues.add(venue);
-            } while (cursor.moveToNext());
-        }
-
-        cursor.close();
-        db.close();
-        return venues;
-    }
-
     public int deleteVenue(String venueId) {
         SQLiteDatabase db = this.getWritableDatabase();
         int result = db.delete(TABLE_VENUES, COLUMN_ID + " = ?", new String[]{venueId});
@@ -484,7 +474,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String.valueOf(lon),
                 String.valueOf(lat),
                 String.valueOf(guestCount),
-                String.valueOf(budget * 1.2) // Allow 20% over budget for scoring
+                String.valueOf(budget * 1.2)
         };
 
         Cursor cursor = db.rawQuery(query, selectionArgs);
@@ -493,14 +483,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
                 Venue venue = cursorToVenue(cursor);
 
-                // Get distance safely
+                // Get distance safely with null check
                 int distanceIndex = cursor.getColumnIndex("distance");
                 double distance = 0;
                 if (distanceIndex >= 0) {
                     distance = cursor.getDouble(distanceIndex);
                 }
 
-                // Calculate score
                 double score = calculateLocalScore(venue, guestCount, budget, distance, eventType);
                 scoredVenues.add(new VenueScore(venue, score));
             } while (cursor.moveToNext());
@@ -509,7 +498,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
 
-        // Sort by score descending
         scoredVenues.sort((a, b) -> Double.compare(b.score, a.score));
         return scoredVenues;
     }
@@ -518,25 +506,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                        double distance, String eventType) {
         double totalScore = 0;
 
-        // Capacity match (30%)
         double capacityScore = 100 - Math.abs(venue.getCapacity() - guestCount) * 100.0 / Math.max(guestCount, 1);
         capacityScore = Math.max(0, Math.min(100, capacityScore));
         totalScore += capacityScore * 0.3;
 
-        // Budget match (25%)
         double budgetScore = 100 - (Math.max(0, venue.getPriceRange() - budget) * 100.0 / Math.max(budget, 1));
         budgetScore = Math.max(0, Math.min(100, budgetScore));
         totalScore += budgetScore * 0.25;
 
-        // Distance score (20%)
-        double distanceScore = Math.max(0, 100 - (distance * 10)); // 10 points per km
+        double distanceScore = Math.max(0, 100 - (distance * 10));
         totalScore += distanceScore * 0.2;
 
-        // Rating score (15%)
-        double ratingScore = venue.getRating() * 20; // Convert 0-5 to 0-100
+        double ratingScore = venue.getRating() * 20;
         totalScore += ratingScore * 0.15;
 
-        // Category suitability (10%)
         double categoryScore = isCategorySuitable(venue.getCategory(), eventType) ? 100 : 50;
         totalScore += categoryScore * 0.1;
 
@@ -577,10 +560,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         venue.setLongitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_LONGITUDE)));
         venue.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
 
-        // FIXED: Use correct column names
         venue.setContactPhone(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTACT)));
         venue.setContactEmail(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL)));
-
         venue.setWebsite(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_WEBSITE)));
 
         // Parse JSON strings for lists
@@ -641,7 +622,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 booking.setUserId(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_ID)));
                 booking.setEventName(cursor.getString(cursor.getColumnIndexOrThrow("event_name")));
 
-                // FIXED: Parse date string to Date object
                 String eventDateStr = cursor.getString(cursor.getColumnIndexOrThrow("event_date"));
                 if (eventDateStr != null) {
                     try {
@@ -658,15 +638,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 booking.setBookingStatus(cursor.getString(cursor.getColumnIndexOrThrow("booking_status")));
                 booking.setPaymentStatus(cursor.getString(cursor.getColumnIndexOrThrow("payment_status")));
 
-                // FIXED: Parse created_at string to Date object
                 String createdAtStr = cursor.getString(cursor.getColumnIndexOrThrow("created_at"));
                 if (createdAtStr != null) {
-                    try {
-                        Date createdAt = dateFormat.parse(createdAtStr);
-                        booking.setCreatedAt(String.valueOf(createdAt));
-                    } catch (ParseException e) {
-                        Log.e("DatabaseHelper", "Error parsing created_at: " + e.getMessage());
-                    }
+                    booking.setCreatedAt(createdAtStr);
                 }
 
                 booking.setVenueName(cursor.getString(cursor.getColumnIndexOrThrow("venue_name")));
@@ -786,7 +760,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_WEATHER_DATE, date);
         values.put(COLUMN_WEATHER_DATA, weatherData);
 
-        // Set expiration (default 24 hours)
         long expiresAt = System.currentTimeMillis() + (expiresInHours * 3600000);
         values.put(COLUMN_EXPIRES_AT, expiresAt);
 
@@ -813,7 +786,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(query, selectionArgs);
 
         if (cursor.moveToFirst()) {
-            weatherData = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_WEATHER_DATA));
+            int columnIndex = cursor.getColumnIndex(COLUMN_WEATHER_DATA);
+            if (columnIndex >= 0) {
+                weatherData = cursor.getString(columnIndex);
+            }
         }
 
         cursor.close();
@@ -870,6 +846,90 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return searches;
+    }
+
+    // ==================== VIEW COUNT METHODS ====================
+
+    public void incrementVenueViews(String venueId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            int currentViews = getVenueViews(venueId);
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_VIEW_COUNT, currentViews + 1);
+            values.put(COLUMN_UPDATED_AT, dateFormat.format(new Date()));
+
+            db.update(TABLE_VENUES, values, COLUMN_ID + " = ?", new String[]{venueId});
+            Log.d("DatabaseHelper", "Incremented views for venue: " + venueId);
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error incrementing venue views: " + e.getMessage());
+        } finally {
+            db.close();
+        }
+    }
+
+    private int getVenueViews(String venueId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int views = 0;
+
+        try {
+            String query = "SELECT " + COLUMN_VIEW_COUNT + " FROM " + TABLE_VENUES +
+                    " WHERE " + COLUMN_ID + " = ?";
+            Cursor cursor = db.rawQuery(query, new String[]{venueId});
+
+            if (cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(COLUMN_VIEW_COUNT);
+                if (columnIndex >= 0) {
+                    views = cursor.getInt(columnIndex);
+                }
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error getting venue views: " + e.getMessage());
+        } finally {
+            db.close();
+        }
+        return views;
+    }
+
+    public List<Venue> getTrendingVenues(int limit) {
+        List<Venue> venues = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        try {
+            // Check if view_count column exists
+            if (isColumnExists(db, TABLE_VENUES, COLUMN_VIEW_COUNT)) {
+                String query = "SELECT * FROM " + TABLE_VENUES +
+                        " ORDER BY " + COLUMN_VIEW_COUNT + " DESC, " + COLUMN_RATING + " DESC" +
+                        " LIMIT " + limit;
+                Cursor cursor = db.rawQuery(query, null);
+
+                if (cursor.moveToFirst()) {
+                    do {
+                        venues.add(cursorToVenue(cursor));
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+            } else {
+                // Fallback if column doesn't exist
+                Log.w("DatabaseHelper", COLUMN_VIEW_COUNT + " column missing, using rating only");
+                String query = "SELECT * FROM " + TABLE_VENUES +
+                        " ORDER BY " + COLUMN_RATING + " DESC" +
+                        " LIMIT " + limit;
+                Cursor cursor = db.rawQuery(query, null);
+
+                if (cursor.moveToFirst()) {
+                    do {
+                        venues.add(cursorToVenue(cursor));
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error getting trending venues: " + e.getMessage());
+        } finally {
+            db.close();
+        }
+        return venues;
     }
 
     // ==================== HELPER CLASSES ====================
@@ -961,56 +1021,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return stats;
     }
-    // Add these methods to your existing DatabaseHelper class:
-
-    public void incrementVenueViews(String venueId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put("view_count", getVenueViews(venueId) + 1);
-        values.put(COLUMN_UPDATED_AT, dateFormat.format(new Date()));
-
-        db.update(TABLE_VENUES, values, COLUMN_ID + " = ?", new String[]{venueId});
-        db.close();
-    }
-
-    private int getVenueViews(String venueId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        int views = 0;
-
-        String query = "SELECT view_count FROM " + TABLE_VENUES +
-                " WHERE " + COLUMN_ID + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{venueId});
-
-        if (cursor.moveToFirst()) {
-            views = cursor.getInt(cursor.getColumnIndexOrThrow("view_count"));
-        }
-
-        cursor.close();
-        db.close();
-        return views;
-    }
-
-    public List<Venue> getTrendingVenues(int limit) {
-        List<Venue> venues = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String query = "SELECT * FROM " + TABLE_VENUES +
-                " ORDER BY view_count DESC, rating DESC" +
-                " LIMIT " + limit;
-
-        Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                venues.add(cursorToVenue(cursor));
-            } while (cursor.moveToNext());
-        }
-
-        cursor.close();
-        db.close();
-        return venues;
-    }
 
     public List<Venue> getRecommendedVenues(String userId) {
         List<Venue> venues = new ArrayList<>();
@@ -1055,11 +1065,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private String getPreferredCategory(List<Booking> bookings) {
-        // Simple implementation - return most frequent category
         Map<String, Integer> categoryCount = new HashMap<>();
 
         for (Booking booking : bookings) {
-            // Get venue category from venueId
             Venue venue = getVenue(booking.getVenueId());
             if (venue != null) {
                 String category = venue.getCategory();
@@ -1067,15 +1075,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
 
-        return categoryCount.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("banquet_hall");
+        String preferred = "banquet_hall";
+        int maxCount = 0;
+        for (Map.Entry<String, Integer> entry : categoryCount.entrySet()) {
+            if (entry.getValue() > maxCount) {
+                maxCount = entry.getValue();
+                preferred = entry.getKey();
+            }
+        }
+        return preferred;
     }
 
     private String getPreferredCity(List<Booking> bookings) {
-        // Similar implementation for city
-        return "Mumbai"; // Default
+        return "Mumbai";
     }
 
     private int getAverageGuestCount(List<Booking> bookings) {

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -180,7 +181,7 @@ public class VenueAdapter extends RecyclerView.Adapter<VenueAdapter.ViewHolder> 
         TextView tvCategory;
         TextView tvType;
         TextView tvAmenities;
-        ImageView btnBookNow;
+        Button btnBookNow;
         ImageView btnViewOnMap;
         ImageView btnAddToFavorites;
 

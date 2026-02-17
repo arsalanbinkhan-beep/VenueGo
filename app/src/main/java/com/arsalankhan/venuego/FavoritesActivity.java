@@ -7,11 +7,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.arsalankhan.venuego.databinding.ActivityFavoritesBinding;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +16,7 @@ import java.util.List;
 public class FavoritesActivity extends AppCompatActivity {
     private ActivityFavoritesBinding binding;
     private AuthService authService;
+    private DatabaseHelper databaseHelper;
     private List<Venue> favoriteVenues;
     private FavoritesAdapter favoritesAdapter;
 
@@ -29,8 +27,8 @@ public class FavoritesActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         authService = new AuthService();
+        databaseHelper = new DatabaseHelper(this);
 
-        // Check authentication
         if (!authService.isUserLoggedIn()) {
             redirectToLogin();
             return;
@@ -41,18 +39,15 @@ public class FavoritesActivity extends AppCompatActivity {
     }
 
     private void setupUI() {
-        // Setup toolbar
         binding.toolbarTitle.setText("My Favorites");
         binding.btnBack.setOnClickListener(v -> onBackPressed());
 
-        // Setup empty state
         binding.tvEmptyState.setText("No favorite venues yet");
         binding.btnExplore.setOnClickListener(v -> {
             startActivity(new Intent(this, SearchFilterActivity.class));
             finish();
         });
 
-        // Setup RecyclerView
         favoriteVenues = new ArrayList<>();
         favoritesAdapter = new FavoritesAdapter(favoriteVenues, this);
         binding.recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(this));
@@ -65,38 +60,17 @@ public class FavoritesActivity extends AppCompatActivity {
         }
 
         String userId = authService.getCurrentUser().getUid();
+        List<Venue> venues = databaseHelper.getUserFavorites(userId);
 
-        FirebaseFirestore.getInstance().collection("users")
-                .document(userId)
-                .collection("favorites")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    favoriteVenues.clear();
+        favoriteVenues.clear();
+        favoriteVenues.addAll(venues);
 
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        showEmptyState();
-                        return;
-                    }
-
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Venue venue = doc.toObject(Venue.class);
-                        if (venue != null) {
-                            venue.setId(doc.getId());
-                            favoriteVenues.add(venue);
-                        }
-                    }
-
-                    if (favoriteVenues.isEmpty()) {
-                        showEmptyState();
-                    } else {
-                        showFavoritesList();
-                        favoritesAdapter.notifyDataSetChanged();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error loading favorites: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    showEmptyState();
-                });
+        if (favoriteVenues.isEmpty()) {
+            showEmptyState();
+        } else {
+            showFavoritesList();
+            favoritesAdapter.notifyDataSetChanged();
+        }
     }
 
     private void showEmptyState() {
@@ -115,12 +89,7 @@ public class FavoritesActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        // Add animation for smoother transition
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -129,5 +98,11 @@ public class FavoritesActivity extends AppCompatActivity {
         } else {
             loadFavorites();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 }

@@ -20,14 +20,9 @@ public class DataSyncService extends Service {
     private FirebaseFirestore firestore;
     private OSMDataService osmDataService;
 
-    public DataSyncService() {
-        super();
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
-        Context context = this;
         firestore = FirebaseFirestore.getInstance();
         osmDataService = new OSMDataService();
     }
@@ -45,16 +40,17 @@ public class DataSyncService extends Service {
     }
 
     // ================= SCHEDULE DAILY SYNC =================
+    public static void scheduleDailySync(Context context) {
 
-    public void scheduleDailySync() {
+        if (context == null) return;
 
         AlarmManager alarmManager =
-                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-        Intent intent = new Intent(this, DataSyncReceiver.class);
+        Intent intent = new Intent(context, DataSyncReceiver.class);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
+                context,
                 0,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
@@ -83,7 +79,6 @@ public class DataSyncService extends Service {
     }
 
     // ================= SYNC PROCESS =================
-
     public void performIncrementalSync() {
 
         firestore.collection("data_sync")
@@ -110,7 +105,6 @@ public class DataSyncService extends Service {
     }
 
     // ================= FULL SYNC =================
-
     private void performFullSync() {
 
         osmDataService.fetchAndStoreMaharashtraVenues(
@@ -131,15 +125,13 @@ public class DataSyncService extends Service {
         );
     }
 
-    // ================= INCREMENTAL (TEMP FULL) =================
-
+    // ================= INCREMENTAL SYNC =================
     private void performIncrementalOSMSync(Date lastSync) {
         Log.d("DataSyncService", "Incremental fallback → full sync");
         performFullSync();
     }
 
     // ================= UPDATE FIRESTORE =================
-
     private void updateSyncStatus(int venuesAdded, String status) {
 
         Map<String, Object> syncData = new HashMap<>();
@@ -157,29 +149,6 @@ public class DataSyncService extends Service {
                 .addOnFailureListener(e ->
                         Log.e("DataSyncService", "Update error: " + e.getMessage())
                 );
-    }
-
-    // ================= CANCEL SYNC =================
-
-    public void cancelDailySync() {
-
-        AlarmManager alarmManager =
-                (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        Intent intent = new Intent(this, DataSyncReceiver.class);
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        if (alarmManager != null) {
-            alarmManager.cancel(pendingIntent);
-        }
-
-        Log.d("DataSyncService", "Daily sync cancelled");
     }
 
     @Override

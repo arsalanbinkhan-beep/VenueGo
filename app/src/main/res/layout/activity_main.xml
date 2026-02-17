@@ -157,24 +157,24 @@
                 <Button
                     android:id="@+id/btnViewAllNearby"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     android:backgroundTint="@color/vibrant_purple"
                     android:text="View All Nearby"
                     android:textAllCaps="false"
-                    android:textColor="@android:color/white"/>
+                    android:textColor="@android:color/white" />
 
                 <Button
                     android:id="@+id/btnViewAllTrending"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="match_parent"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:backgroundTint="@color/vibrant_purple"
                     android:text="View All Trending"
                     android:textAllCaps="false"
-                    android:textColor="@android:color/white"/>
+                    android:textColor="@android:color/white" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

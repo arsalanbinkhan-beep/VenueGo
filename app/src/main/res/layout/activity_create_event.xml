@@ -313,26 +313,26 @@ app:boxCornerRadiusBottomEnd="8dp"
             <Button
                 android:id="@+id/btn_indoor"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="Indoor"
-                android:textSize="16sp"
-                android:textColor="@android:color/white"
+                android:layout_weight="1"
                 android:backgroundTint="@color/vibrant_purple"
-                app:cornerRadius="12dp"/>
+                android:text="Indoor"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:cornerRadius="12dp" />
 
             <Button
                 android:id="@+id/btn_outdoor"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Outdoor"
-                android:textSize="16sp"
-                android:textColor="@android:color/white"
+                android:layout_weight="1"
                 android:backgroundTint="@color/light_gray_text"
-                app:cornerRadius="12dp"/>
+                android:text="Outdoor"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:cornerRadius="12dp" />
 
         </LinearLayout>
 
@@ -396,17 +396,17 @@ app:boxCornerRadiusBottomEnd="8dp"
         <Button
             android:id="@+id/btn_find_venues"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="71dp"
             android:layout_marginTop="32dp"
             android:layout_marginBottom="24dp"
+            android:backgroundTint="@color/vibrant_purple"
+            android:drawableStart="@drawable/ic_sparkle"
+            android:drawablePadding="8dp"
             android:text="Find AI Recommended Venues"
+            android:textAllCaps="false"
             android:textColor="@android:color/white"
             android:textSize="18sp"
-            android:textAllCaps="false"
-            android:backgroundTint="@color/vibrant_purple"
-            app:cornerRadius="12dp"
-            android:drawableStart="@drawable/ic_sparkle"
-            android:drawablePadding="8dp"/>
+            app:cornerRadius="12dp" />
 
     </LinearLayout>
 
